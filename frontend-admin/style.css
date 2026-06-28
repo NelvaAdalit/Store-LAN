@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    background-color: #0d0d0d; /* Fondo negro profundo */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden; /* Evita desborde horizontal por las esferas */
+    overflow-y: auto;   /* Permite scroll vertical si la pantalla es muy pequeña */
+    position: relative;
+}
+
+/* --- Simulación 3D de Esferas Doradas --- */
+.background-orbs {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    /* Gradiente radial para simular luz y sombra en 3D con color vino */
+    background: radial-gradient(circle at 35% 35%, #a42a42, #6b1428 20%, #3d0a15 60%, #170207);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.orb-1 { width: 250px; height: 250px; top: -50px; right: 15%; }
+.orb-2 { width: 180px; height: 180px; bottom: 10%; left: 8%; }
+.orb-3 { width: 120px; height: 120px; bottom: -20px; right: 35%; z-index: 2; }
+
+/* --- Tarjeta Glassmorphism --- */
+.login-glass {
+    position: relative;
+    z-index: 1; /* Para que quede encima de las esferas de fondo */
+    background: rgba(255, 255, 255, 0.03); /* Casi transparente */
+    backdrop-filter: blur(20px); /* El desenfoque fuerte del cristal */
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.3); /* Borde dorado translúcido */
+    border-radius: 20px;
+    padding: 50px 40px;
+    width: 90%;
+    max-width: 400px;
+    box-sizing: border-box;
+    color: white;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+}
+
+h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 35px;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: #e6c27a; /* Texto dorado */
+}
+
+/* --- Inputs --- */
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: #a0a0a0;
+    margin-bottom: 8px;
+    margin-left: 5px;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 14px 15px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.4); /* Fondo oscuro para el input */
+    color: white;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: 0.3s;
+}
+
+/* Efecto al hacer clic en el input */
+input[type="email"]:focus,
+input[type="password"]:focus {
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 0 1px #d4af37; 
+}
+
+/* --- Opciones (Recordarme / Olvidé contraseña) --- */
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    margin-bottom: 30px;
+    color: #a0a0a0;
+}
+
+.options a {
+    color: #a0a0a0;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.options a:hover {
+    color: #d4af37;
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Botón Dorado --- */
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 30px; /* Forma de píldora */
+    background: linear-gradient(to right, #e6c27a, #b8860b);
+    color: #1a1a1a;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
+
+#mensaje {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+/* --- Media Queries para Responsividad Móvil --- */
+@media (max-width: 480px) {
+    body {
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    
+    .login-glass {
+        padding: 35px 20px;
+        border-radius: 16px;
+    }
+
+    .orb-1 {
+        width: 150px;
+        height: 150px;
+        top: -30px;
+        right: 5%;
+    }
+
+    .orb-2 {
+        width: 120px;
+        height: 120px;
+        bottom: 5%;
+        left: 5%;
+    }
+
+    .orb-3 {
+        width: 80px;
+        height: 80px;
+        bottom: -10px;
+        right: 15%;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 25px;
+        letter-spacing: 2px;
+    }
+    
+    .options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+    
+    .options a {
+        display: block;
+    }
+}
+
+@media (max-width: 350px) {
+    .login-glass {
+        padding: 25px 15px;
+    }
+    h2 {
+        font-size: 1.3rem;
+    }
+}
