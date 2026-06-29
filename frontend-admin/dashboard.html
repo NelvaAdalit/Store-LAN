@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - STORE LAN</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <aside class="sidebar glass-panel">
+        <div class="sidebar-header">
+            <h2 class="brand-text">STORE LAN</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="active"><i class="fas fa-box"></i> Productos</a></li>
+            <li><a href="#"><i class="fas fa-shopping-cart"></i> Órdenes</a></li>
+            <li><a href="#"><i class="fas fa-users"></i> Clientes</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button id="btnLogout" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <nav class="navbar glass-panel">
+            <div class="nav-title">Gestión de Catálogo</div>
+            <div class="nav-actions">
+                <span id="adminName">Admin</span>
+                <div class="avatar"></div>
+            </div>
+        </nav>
+
+        <section class="content-area">
+            <div class="table-header">
+                <h3>Lista de Productos</h3>
+                <button class="btn-gold"><i class="fas fa-plus"></i> Nuevo Producto</button>
+            </div>
+            
+            <div class="table-container glass-panel">
+                <table id="productosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #a0a0a0;">Cargando productos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

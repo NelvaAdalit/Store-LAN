@@ -27,8 +27,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             mensaje.style.color = '#00ff88'; // Verde brillante
             mensaje.innerText = '¡Acceso concedido! Entrando...';
             
-            // En el futuro, aquí agregaremos: window.location.href = 'dashboard.html';
-            console.log("Token guardado:", data.token);
+            // REDIRECCIÓN ACTIVADA: Te lleva al panel principal
+            window.location.href = 'dashboard.html';
         } else {
             // ERROR (Contraseña incorrecta, etc.)
             mensaje.style.color = '#ff4d4d'; // Rojo
