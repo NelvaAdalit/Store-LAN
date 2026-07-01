@@ -788,3 +788,163 @@ body {
     background: #d4af37;
     color: #1a1a1a;
 }
+
+/* --- Carrusel de Portada (Tienda) --- */
+.hero-carousel {
+    position: relative;
+    width: 100%;
+    height: 550px;
+    overflow: hidden;
+    margin-bottom: 40px;
+}
+
+.carousel-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.carousel-slide {
+    min-width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e6c27a;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: 0.3s;
+    z-index: 10;
+}
+
+.carousel-btn:hover {
+    background: #d4af37;
+    color: #1a1a1a;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.prev-btn {
+    left: 25px;
+}
+
+.next-btn {
+    right: 25px;
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+}
+
+.carousel-dots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.carousel-dots .dot.active {
+    background: #d4af37;
+    transform: scale(1.2);
+    box-shadow: 0 0 8px #d4af37;
+}
+
+/* --- Ajuste Premium y Hover Tarjetas de Producto --- */
+.product-card {
+    cursor: pointer;
+    background: rgba(25, 25, 25, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.05);
+}
+
+/* --- Modal de Detalles del Producto --- */
+#productDetailModal .modal-content {
+    background: rgba(25, 25, 25, 0.9);
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+#detailProductImg {
+    transition: transform 0.5s ease;
+}
+
+#detailProductImg:hover {
+    transform: scale(1.05);
+}
+
+/* --- Tipografía Global Premium --- */
+body, input, select, textarea, button {
+    font-family: 'Inter', 'Poppins', sans-serif;
+}
+
+h1, h2, h3, h4, .logo {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* --- Responsividad Adicional (Móvil y Tablet) --- */
+@media (max-width: 768px) {
+    .hero-carousel {
+        height: 380px;
+    }
+    
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .prev-btn {
+        left: 15px;
+    }
+    
+    .next-btn {
+        right: 15px;
+    }
+    
+    /* Adaptación de Modal de Detalles a Móviles */
+    #productDetailModal .modal-content > div {
+        flex-direction: column !important;
+    }
+    
+    #productDetailModal .modal-content img {
+        height: 300px !important;
+    }
+}

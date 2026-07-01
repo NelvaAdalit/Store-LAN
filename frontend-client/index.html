@@ -3,7 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STORE LAN - Tienda de Moda</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>STORE LAN - Ropa y Moda Exclusiva de Lujo en Bolivia</title>
+    <meta name="description" content="Descubre la colección de STORE LAN. Prendas exclusivas confeccionadas a medida con telas premium de seda, lino y algodón. Diseños únicos de moda y elegancia en Bolivia.">
+    <meta name="keywords" content="store lan, ropa de seda, moda bolivia, lino, blusas de seda, vestidos, ropa elegante, confección a medida">
+    <meta name="author" content="STORE LAN">
+    
+    <!-- Open Graph (Facebook/Instagram/WhatsApp sharing metadata) -->
+    <meta property="og:title" content="STORE LAN - Ropa y Moda Exclusiva de Lujo">
+    <meta property="og:description" content="Explora nuestro catálogo en línea. Moda premium diseñada a tu medida en Bolivia.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://127.0.0.1:5500/index.html">
+    <meta property="og:site_name" content="STORE LAN">
+    
+    <!-- Google Fonts for Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -46,12 +64,44 @@
         </div>
     </header>
 
-    <!-- Banner Hero Promocional -->
-    <section class="hero-section">
-        <div class="hero-glass glass-card">
-            <h1>Colección Exclusiva 2026</h1>
-            <p>Descubre prendas premium de seda, lino y algodón confeccionadas a tu medida.</p>
-            <button class="btn-explore" onclick="document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})">Ver Catálogo</button>
+    <!-- Banner Hero Promocional (Carrusel Dinámico) -->
+    <section class="hero-carousel" id="heroCarousel">
+        <div class="carousel-inner">
+            <!-- Diapositiva 1 -->
+            <div class="carousel-slide active" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(23,2,7,0.85)), url('assets/banner1.webp');">
+                <div class="hero-glass glass-card">
+                    <h1>Colección Exclusiva 2026</h1>
+                    <p>Descubre prendas premium de seda, lino y algodón confeccionadas a tu medida.</p>
+                    <button class="btn-explore" onclick="document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})">Ver Catálogo</button>
+                </div>
+            </div>
+            <!-- Diapositiva 2 -->
+            <div class="carousel-slide" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(23,2,7,0.85)), url('assets/banner2.webp');">
+                <div class="hero-glass glass-card">
+                    <h1>Tendencias de Temporada</h1>
+                    <p>Colores elegantes, cortes de alta costura y detalles dorados sofisticados.</p>
+                    <button class="btn-explore" onclick="document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})">Explorar Colección</button>
+                </div>
+            </div>
+            <!-- Diapositiva 3 -->
+            <div class="carousel-slide" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(23,2,7,0.85)), url('assets/banner3.webp');">
+                <div class="hero-glass glass-card">
+                    <h1>Calidad y Detalle Único</h1>
+                    <p>Prendas diseñadas para resaltar tu estilo con el máximo confort y elegancia.</p>
+                    <button class="btn-explore" onclick="document.getElementById('contactoSection').scrollIntoView({behavior: 'smooth'})">Contacto Directo</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botones de Navegación del Carrusel -->
+        <button class="carousel-btn prev-btn" id="prevSlide" type="button"><i class="fas fa-chevron-left"></i></button>
+        <button class="carousel-btn next-btn" id="nextSlide" type="button"><i class="fas fa-chevron-right"></i></button>
+        
+        <!-- Indicadores (Puntos) -->
+        <div class="carousel-dots">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
         </div>
     </section>
 
@@ -148,9 +198,6 @@
                     <input type="password" id="loginPassword" required placeholder="••••••">
                 </div>
                 <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 12px; margin-top: 10px;">Entrar</button>
-                <div style="text-align: center; margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 15px;">
-                    <a href="../frontend-admin/index.html" style="color: #e6c27a; font-size: 0.85rem; text-decoration: none; font-weight: 500;"><i class="fas fa-lock" style="margin-right: 5px;"></i> Acceso Administrativo</a>
-                </div>
             </form>
 
             <!-- Formulario Registro -->
@@ -203,6 +250,60 @@
         </div>
     </div>
 
+    <!-- Modal de Detalles del Producto -->
+    <div id="productDetailModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; padding: 0; overflow: hidden; border-radius: 20px;">
+            <span class="close-modal" id="btnCloseDetailModal" style="top: 20px; right: 25px; z-index: 10;">&times;</span>
+            <div style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+                <!-- Columna Foto -->
+                <div style="flex: 1 1 300px; max-height: 400px; overflow: hidden; background: #000;">
+                    <img id="detailProductImg" src="" alt="Prenda de vestir" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <!-- Columna Info -->
+                <div style="flex: 1 1 300px; padding: 35px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+                    <div>
+                        <span id="detailProductCat" style="font-size: 0.75rem; text-transform: uppercase; color: #a0a0a0; letter-spacing: 1.5px; font-weight: 500;">Categoría</span>
+                        <h2 id="detailProductName" style="margin: 5px 0 0 0; color: white; font-weight: 400; font-size: 1.6rem; letter-spacing: 1px;">Nombre de la Prenda</h2>
+                    </div>
+                    
+                    <p id="detailProductDesc" style="color: #c0c0c0; font-size: 0.85rem; line-height: 1.6; margin: 0;">Descripción detallada de la prenda...</p>
+                    
+                    <div style="font-size: 1.5rem; font-weight: 600; color: #e6c27a;" id="detailProductPrice">Bs. 0</div>
+
+                    <!-- Selector de Variantes (Talla y Color) -->
+                    <div style="display: flex; flex-direction: column; gap: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label for="detailVariantSelect">Seleccionar Talla / Color</label>
+                            <select id="detailVariantSelect" required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(212,175,55,0.2); font-family: 'Poppins', sans-serif;">
+                                <!-- Cargado dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Botón Agregar -->
+                    <button id="btnDetailAddCart" class="btn-gold" style="width: 100%; border-radius: 10px; padding: 14px; font-weight: bold; margin-top: auto;">
+                        <i class="fas fa-shopping-bag" style="margin-right: 8px;"></i> Agregar a la Bolsa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat en Vivo Profesional (Tawk.to) -->
+    <!-- Nota: Puedes cambiar la URL del script por el tuyo propio de Tawk.to cuando registres tu cuenta final -->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6483bfdecc26a871b021a8d0/1h2hn83ki';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+
+    <script src="config.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

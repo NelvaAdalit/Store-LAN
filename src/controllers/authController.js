@@ -191,40 +191,84 @@ export const loginCliente = async (req, res) => {
             return res.status(400).json({ error: "El correo y la contraseña son requeridos" });
         }
 
-        // Buscar cliente
-        const { data: cliente, error } = await supabase
+        // 1. Buscar primero en la tabla 'clientes'
+        const { data: cliente, error: errC } = await supabase
             .from('clientes')
             .select('*')
             .eq('email', email)
             .maybeSingle();
 
-        if (error) {
-            console.error("Error al buscar cliente:", error);
+        if (errC) {
+            console.error("Error al buscar cliente:", errC);
             return res.status(500).json({ error: "Error en el servidor al intentar autenticar" });
         }
 
-        if (!cliente) {
-            return res.status(401).json({ error: "Correo o contraseña incorrectos" });
-        }
-
-        // Verificar contraseña
-        const esValida = await bcrypt.compare(password, cliente.password);
-        if (!esValida) {
-            return res.status(401).json({ error: "Correo o contraseña incorrectos" });
-        }
-
-        // Firmar Token JWT con rol 'cliente'
-        const token = jwt.sign({ id: cliente.id, nombre: cliente.nombre, rol: 'cliente' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-        return res.json({
-            message: "Inicio de sesión exitoso",
-            token,
-            cliente: {
-                id: cliente.id,
-                nombre: cliente.nombre,
-                email: cliente.email
+        if (cliente) {
+            // Verificar contraseña de cliente
+            const esValida = await bcrypt.compare(password, cliente.password);
+            if (!esValida) {
+                return res.status(401).json({ error: "Correo o contraseña incorrectos" });
             }
-        });
+
+            // Firmar Token JWT con rol 'cliente'
+            const token = jwt.sign(
+                { id: cliente.id, nombre: cliente.nombre, rol: 'cliente' },
+                process.env.JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: "Inicio de sesión exitoso",
+                rol: 'cliente',
+                token,
+                cliente: {
+                    id: cliente.id,
+                    nombre: cliente.nombre,
+                    email: cliente.email
+                }
+            });
+        }
+
+        // 2. Si no es cliente, buscar en la tabla 'usuarios' (Admins)
+        const { data: usuario, error: errU } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (errU) {
+            console.error("Error al buscar usuario administrador:", errU);
+            return res.status(500).json({ error: "Error en el servidor al intentar autenticar" });
+        }
+
+        if (usuario) {
+            // Verificar contraseña de admin
+            const esValidaAdmin = await bcrypt.compare(password, usuario.password);
+            if (!esValidaAdmin) {
+                return res.status(401).json({ error: "Correo o contraseña incorrectos" });
+            }
+
+            // Firmar Token JWT con rol 'admin'
+            const token = jwt.sign(
+                { id: usuario.id, email: usuario.email, rol: usuario.rol || 'admin' },
+                process.env.JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.json({
+                message: "Inicio de sesión exitoso como Administrador",
+                rol: usuario.rol || 'admin',
+                token,
+                cliente: {
+                    id: usuario.id,
+                    nombre: "Administrador",
+                    email: usuario.email
+                }
+            });
+        }
+
+        // 3. Si no existe en ninguna de las dos tablas
+        return res.status(401).json({ error: "Correo o contraseña incorrectos" });
     } catch (err) {
         console.error("Excepción en loginCliente:", err);
         return res.status(500).json({ error: "Error interno del servidor" });

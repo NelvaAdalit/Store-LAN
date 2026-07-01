@@ -1,5 +1,5 @@
 // --- Configuración Inicial ---
-const API_URL = 'http://localhost:3001/api';
+const API_URL = CONFIG.API_URL;
 
 // Estado del Carrito (recuperado de localStorage)
 let carrito = JSON.parse(localStorage.getItem('carritoStoreLan')) || [];
@@ -92,7 +92,7 @@ async function obtenerCatalogo() {
                 const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
 
                 catalogGrid.innerHTML += `
-                    <div class="product-card glass-card">
+                    <div class="product-card glass-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${producto.precio}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}')">
                         <div class="img-container">
                             <img src="${fotoUrl}" alt="${producto.nombre}" loading="lazy">
                         </div>
@@ -102,7 +102,7 @@ async function obtenerCatalogo() {
                             <p class="product-desc">${producto.descripcion || 'Sin descripción disponible.'}</p>
                             <div class="product-price-row">
                                 <span class="product-price">Bs. ${producto.precio}</span>
-                                <button class="btn-add-cart" onclick="agregarAlCarrito(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${producto.precio}, '${fotoUrl}')">
+                                <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${producto.precio}, '${fotoUrl}')">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -144,13 +144,21 @@ btnCloseCart.addEventListener('click', () => {
 });
 
 // Agregar item
-window.agregarAlCarrito = (id, nombre, precio, foto) => {
-    const itemExistente = carrito.find(item => item.id === id);
+window.agregarAlCarrito = (id, nombre, precio, foto, cantidad = 1, idVariante = null) => {
+    // Si hay idVariante, usamos ese ID como el identificador del item en el carrito
+    const idItem = idVariante ? idVariante : id;
+    const itemExistente = carrito.find(item => item.id === idItem);
 
     if (itemExistente) {
-        itemExistente.cantidad++;
+        itemExistente.cantidad += cantidad;
     } else {
-        carrito.push({ id, nombre, precio, foto, cantidad: 1 });
+        carrito.push({ 
+            id: idItem, 
+            nombre: nombre, 
+            precio: parseFloat(precio), 
+            foto: foto, 
+            cantidad: cantidad 
+        });
     }
 
     guardarCarrito();
@@ -359,6 +367,14 @@ clientLoginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
+            // Autodetección de rol (Admin vs Cliente)
+            if (data.rol === 'admin' || data.rol === 'superadmin') {
+                localStorage.setItem('tokenStoreLan', data.token);
+                alert("¡Acceso concedido como Administrador! Redireccionando al panel de control...");
+                window.location.href = '../frontend-admin/dashboard.html';
+                return;
+            }
+
             localStorage.setItem('tokenCliente', data.token);
             localStorage.setItem('nombreCliente', data.cliente.nombre);
             clientNameNav.innerText = data.cliente.nombre.split(' ')[0];
@@ -463,6 +479,13 @@ checkoutForm.addEventListener('submit', async (e) => {
     }
 
     try {
+        // Map details of purchase
+        const detalles = carrito.map(item => ({
+            id_variante: item.id, // ID del producto (se resolverá a su variante en la DB)
+            cantidad: item.cantidad,
+            precio_unitario: item.precio
+        }));
+
         // 1. Registrar la orden en el servidor
         const responseOrden = await fetch(`${API_URL}/ordenes`, {
             method: 'POST',
@@ -470,7 +493,7 @@ checkoutForm.addEventListener('submit', async (e) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${tokenCliente}`
             },
-            body: JSON.stringify({ total })
+            body: JSON.stringify({ total, detalles })
         });
 
         const dataOrden = await responseOrden.json();
@@ -515,3 +538,149 @@ checkoutForm.addEventListener('submit', async (e) => {
         alert("Error de conexión al procesar tu compra.");
     }
 });
+
+// --- 5. Lógica del Carrusel Promocional ---
+let currentSlide = 0;
+const slides = document.querySelectorAll('.carousel-slide');
+const dots = document.querySelectorAll('.carousel-dots .dot');
+const carouselInner = document.querySelector('.carousel-inner');
+
+function showSlide(index) {
+    if (!carouselInner || slides.length === 0) return;
+    
+    if (index >= slides.length) {
+        currentSlide = 0;
+    } else if (index < 0) {
+        currentSlide = slides.length - 1;
+    } else {
+        currentSlide = index;
+    }
+    
+    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+    
+    dots.forEach((dot, idx) => {
+        if (idx === currentSlide) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+}
+
+const nextBtn = document.getElementById('nextSlide');
+const prevBtn = document.getElementById('prevSlide');
+
+if (nextBtn) {
+    nextBtn.addEventListener('click', () => showSlide(currentSlide + 1));
+}
+if (prevBtn) {
+    prevBtn.addEventListener('click', () => showSlide(currentSlide - 1));
+}
+
+dots.forEach((dot, idx) => {
+    dot.addEventListener('click', () => showSlide(idx));
+});
+
+// Auto-play cada 5 segundos
+setInterval(() => {
+    showSlide(currentSlide + 1);
+}, 5000);
+
+// --- 6. Agregar al Carrito con Verificación de Variantes ---
+window.agregarAlCarritoDirecto = async (id, nombre, precio, foto) => {
+    try {
+        const response = await fetch(`${API_URL}/productos/${id}/variantes`);
+        const variantes = await response.json();
+        
+        if (response.ok && variantes.length > 0) {
+            // Si el producto cuenta con variantes, obligamos a seleccionarlas
+            alert("Esta prenda cuenta con opciones de Talla y Color. Por favor selecciona tu variante preferida en la vista de detalles.");
+            verDetallesProducto(id, nombre, "Colección", foto, precio, "Cargando detalles...");
+        } else {
+            // Si no tiene variantes, lo añade directamente
+            agregarAlCarrito(id, nombre, precio, foto);
+        }
+    } catch (error) {
+        console.error("Error al verificar variantes:", error);
+        agregarAlCarrito(id, nombre, precio, foto);
+    }
+};
+
+// --- 7. Modal de Detalles de Producto ---
+const productDetailModal = document.getElementById('productDetailModal');
+const btnCloseDetailModal = document.getElementById('btnCloseDetailModal');
+
+window.verDetallesProducto = async (id, nombre, categoria, foto, precio, descripcion) => {
+    document.getElementById('detailProductImg').src = foto;
+    document.getElementById('detailProductCat').innerText = categoria;
+    document.getElementById('detailProductName').innerText = nombre;
+    document.getElementById('detailProductDesc').innerText = descripcion;
+    document.getElementById('detailProductPrice').innerText = `Bs. ${precio}`;
+    
+    const select = document.getElementById('detailVariantSelect');
+    select.innerHTML = '<option value="">Cargando opciones...</option>';
+    
+    const btnAdd = document.getElementById('btnDetailAddCart');
+    btnAdd.disabled = true;
+
+    try {
+        const response = await fetch(`${API_URL}/productos/${id}/variantes`);
+        const variantes = await response.json();
+        
+        if (response.ok && variantes.length > 0) {
+            select.innerHTML = '';
+            variantes.forEach(v => {
+                const stockText = v.stock > 0 ? `Stock: ${v.stock} u.` : 'Agotado';
+                const disabledText = v.stock === 0 ? 'disabled' : '';
+                select.innerHTML += `
+                    <option value="${v.id}" data-stock="${v.stock}" data-talla="${v.talla}" data-color="${v.color}" ${disabledText}>
+                        Talla: ${v.talla} - Color: ${v.color} (${stockText})
+                    </option>
+                `;
+            });
+            btnAdd.disabled = false;
+        } else {
+            select.innerHTML = `<option value="default" data-stock="100" data-talla="Única" data-color="Estándar">Estándar (Stock Disponible)</option>`;
+            btnAdd.disabled = false;
+        }
+    } catch (error) {
+        console.error("Error al cargar variantes en detalle:", error);
+        select.innerHTML = `<option value="default" data-stock="100" data-talla="Única" data-color="Estándar">Estándar (Stock Disponible)</option>`;
+        btnAdd.disabled = false;
+    }
+
+    // Configurar click de agregar al carrito clonando el botón para borrar handlers antiguos
+    const newBtnAdd = btnAdd.cloneNode(true);
+    btnAdd.parentNode.replaceChild(newBtnAdd, btnAdd);
+    
+    newBtnAdd.addEventListener('click', () => {
+        const selectedOption = select.options[select.selectedIndex];
+        if (!selectedOption) {
+            alert("Por favor selecciona una variante disponible.");
+            return;
+        }
+        
+        const variantId = selectedOption.value;
+        const talla = selectedOption.getAttribute('data-talla');
+        const color = selectedOption.getAttribute('data-color');
+        const stock = parseInt(selectedOption.getAttribute('data-stock'));
+        
+        if (stock <= 0) {
+            alert("Esta variante se encuentra agotada.");
+            return;
+        }
+        
+        const variantName = `${nombre} (${talla} / ${color})`;
+        agregarAlCarrito(id, variantName, precio, foto, 1, variantId !== 'default' ? parseInt(variantId) : null);
+        
+        productDetailModal.style.display = 'none';
+    });
+
+    productDetailModal.style.display = 'flex';
+};
+
+if (btnCloseDetailModal) {
+    btnCloseDetailModal.addEventListener('click', () => {
+        productDetailModal.style.display = 'none';
+    });
+}

@@ -6,27 +6,39 @@ import { optimizarImagen } from '../middleware/uploadMiddleware.js';
  */
 export const crearOrden = async (req, res) => {
     try {
-        const { total } = req.body;
+        const { total, detalles } = req.body;
         const id_cliente = req.cliente ? req.cliente.id : null; // Vincula la orden al cliente autenticado
 
         if (!total) {
             return res.status(400).json({ error: "El total de la orden es requerido." });
         }
 
-        // Insertar orden en Supabase
-        const { data: nuevaOrden, error } = await supabase
-            .from('ordenes')
-            .insert({
-                id_cliente: id_cliente ? parseInt(id_cliente) : null,
-                total: parseFloat(total),
-                estado: 'Pendiente'
-            })
-            .select('*')
-            .single();
+        if (!detalles || !Array.isArray(detalles) || detalles.length === 0) {
+            return res.status(400).json({ error: "Los detalles de la compra son requeridos para procesar el pedido." });
+        }
+
+        // Llamar a la función transaccional en la DB (Supabase RPC)
+        const { data: ordenId, error } = await supabase.rpc('crear_orden_transaccional', {
+            p_id_cliente: id_cliente,
+            p_total: parseFloat(total),
+            p_detalles: detalles
+        });
 
         if (error) {
-            console.error("Error al crear la orden:", error);
-            return res.status(500).json({ error: "Error interno al registrar la orden." });
+            console.error("Error transaccional al crear orden:", error);
+            return res.status(400).json({ error: error.message || "Error al procesar la compra. Verifica el stock disponible." });
+        }
+
+        // Recuperamos los datos de la orden recién creada
+        const { data: nuevaOrden, error: getError } = await supabase
+            .from('ordenes')
+            .select('*')
+            .eq('id', ordenId)
+            .single();
+
+        if (getError) {
+            console.error("Error al recuperar orden creada:", getError);
+            return res.status(500).json({ error: "Error al recuperar los detalles de la orden." });
         }
 
         return res.status(201).json({

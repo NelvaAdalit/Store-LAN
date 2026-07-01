@@ -38,12 +38,13 @@ const subirImagenSupabase = async (bucketName, nombreArchivo, buffer, isPublic =
 
 export const obtenerProductos = async (req, res) => {
     try {
-        const { search, categoria, precio_min, precio_max, orden } = req.query;
+        const { search, categoria, precio_min, precio_max, orden, page, limit } = req.query;
 
-        // Iniciamos la consulta base
+        // Iniciamos la consulta base filtering only active products (Soft Delete)
         let query = supabase
             .from('productos')
-            .select('*, categorias(nombre), imagenes(url)');
+            .select('*, categorias(nombre), imagenes(url)')
+            .eq('estado_activo', true);
 
         // 1. Filtrar por término de búsqueda (en nombre o descripción)
         if (search) {
@@ -78,6 +79,13 @@ export const obtenerProductos = async (req, res) => {
             // Orden predeterminado por ID
             query = query.order('id', { ascending: true });
         }
+
+        // 5. Paginación y límite de registros para evitar saturación de memoria
+        const p = parseInt(page) || 1;
+        const l = parseInt(limit) || 20; // Límite por defecto: 20
+        const from = (p - 1) * l;
+        const to = from + l - 1;
+        query = query.range(from, to);
 
         const { data, error } = await query;
 
@@ -250,40 +258,21 @@ export const eliminarProducto = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 1. Obtener todas las imágenes del producto para borrarlas del Storage
-        const { data: fotos } = await supabase
-            .from('imagenes')
-            .select('url')
-            .eq('id_producto', parseInt(id));
-
-        if (fotos && fotos.length > 0) {
-            for (const foto of fotos) {
-                const parts = foto.url.split('/');
-                const nombreArchivo = parts[parts.length - 1];
-                if (nombreArchivo) {
-                    await supabase.storage.from('ropa').remove([nombreArchivo]);
-                }
-            }
-        }
-
-        // 2. Eliminar la relación de imágenes de la BD
-        await supabase
-            .from('imagenes')
-            .delete()
-            .eq('id_producto', parseInt(id));
-
-        // 3. Eliminar el producto de la base de datos
+        // Borrado lógico (Soft Delete) para conservar historial de ventas (detalle_orden)
         const { error: dbError } = await supabase
             .from('productos')
-            .delete()
+            .update({ 
+                estado_activo: false,
+                updated_at: new Date()
+            })
             .eq('id', parseInt(id));
 
         if (dbError) {
-            console.error("Error al eliminar producto de la BD:", dbError);
+            console.error("Error al borrar lógicamente producto de la BD:", dbError);
             return res.status(500).json({ error: "Error en el servidor al intentar eliminar el producto" });
         }
 
-        res.json({ message: "Producto eliminado exitosamente" });
+        res.json({ message: "Producto eliminado exitosamente (borrado lógico)" });
     } catch (error) {
         console.error("Excepción en eliminarProducto:", error);
         res.status(500).json({ error: "Error interno en el servidor" });
@@ -296,7 +285,8 @@ export const obtenerVariantes = async (req, res) => {
         const { data, error } = await supabase
             .from('variantes')
             .select('*')
-            .eq('id_producto', parseInt(id));
+            .eq('id_producto', parseInt(id))
+            .eq('estado_activo', true); // Solo variantes activas
 
         if (error) {
             console.error("Error al obtener variantes:", error);
@@ -349,17 +339,21 @@ export const eliminarVariante = async (req, res) => {
     try {
         const { id } = req.params; // ID de la variante
 
+        // Borrado lógico de variantes (Soft Delete)
         const { error } = await supabase
             .from('variantes')
-            .delete()
+            .update({ 
+                estado_activo: false,
+                updated_at: new Date()
+            })
             .eq('id', parseInt(id));
 
         if (error) {
-            console.error("Error al eliminar variante:", error);
+            console.error("Error al eliminar lógicamente variante:", error);
             return res.status(500).json({ error: "Error al eliminar la variante" });
         }
 
-        res.json({ message: "Variante eliminada con éxito" });
+        res.json({ message: "Variante eliminada con éxito (borrado lógico)" });
     } catch (error) {
         console.error("Excepción en eliminarVariante:", error);
         res.status(500).json({ error: "Error interno en el servidor" });

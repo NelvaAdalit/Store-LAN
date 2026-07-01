@@ -6,10 +6,12 @@ if (!token) {
     window.location.href = 'index.html';
 }
 
+const API_URL = CONFIG.API_URL;
+
 // 2. Lógica para Cerrar Sesión
 document.getElementById('btnLogout').addEventListener('click', () => {
     localStorage.removeItem('tokenStoreLan'); // Borramos la llave
-    window.location.href = 'index.html'; // Lo mandamos al login
+    window.location.href = '../index.html'; // Lo mandamos al inicio oficial (tienda)
 });
 
 // Referencias a elementos del DOM para el Modal
@@ -31,7 +33,7 @@ const prodImagenInput = document.getElementById('prodImagen');
 // Cargar categorías dinámicamente desde el backend
 async function cargarCategorias() {
     try {
-        const response = await fetch('http://localhost:3001/api/test-db'); // Reutiliza el endpoint de prueba que retorna categorías
+        const response = await fetch(`${API_URL}/test-db`); // Reutiliza el endpoint de prueba que retorna categorías
         const result = await response.json();
         if (response.ok && result.data) {
             prodCategoriaSelect.innerHTML = '';
@@ -44,13 +46,43 @@ async function cargarCategorias() {
     }
 }
 
+// Crear nueva categoría dinámicamente
+document.getElementById('btnCrearCategoria').addEventListener('click', async () => {
+    const nombre = prompt("Ingresa el nombre de la nueva categoría (ej: Chompas, Camisas):");
+    if (!nombre || !nombre.trim()) return;
+
+    try {
+        const response = await fetch(`${API_URL}/admin/categorias`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ nombre: nombre.trim() })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(`¡Categoría "${data.categoria.nombre}" creada con éxito!`);
+            await cargarCategorias(); // Recargar el dropdown
+            prodCategoriaSelect.value = data.categoria.id; // Seleccionar la nueva categoría
+        } else {
+            alert(data.error || "Ocurrió un error al crear la categoría.");
+        }
+    } catch (error) {
+        console.error("Error al crear categoría:", error);
+        alert("Error de conexión al intentar crear la categoría.");
+    }
+});
+
 // 3. Función para cargar productos desde la base de datos
 async function cargarProductos() {
     const tbody = document.querySelector('#productosTable tbody');
     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #a0a0a0;">Cargando productos...</td></tr>`;
     
     try {
-        const response = await fetch('http://localhost:3001/api/productos');
+        const response = await fetch(`${API_URL}/productos`);
         const result = await response.json();
 
         // Obtenemos los productos de forma robusta sea un array directo o un objeto { data: [...] }
@@ -150,7 +182,7 @@ productForm.addEventListener('submit', async (e) => {
         formData.append('imagen', imagen);
     }
 
-    const url = id ? `http://localhost:3001/api/productos/${id}` : 'http://localhost:3001/api/productos';
+    const url = id ? `${API_URL}/productos/${id}` : `${API_URL}/productos`;
     const method = id ? 'PUT' : 'POST';
 
     try {
@@ -184,7 +216,7 @@ window.eliminarProducto = async (id) => {
     }
 
     try {
-        const response = await fetch(`http://localhost:3001/api/productos/${id}`, {
+        const response = await fetch(`${API_URL}/productos/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -265,7 +297,7 @@ async function cargarOrdenes() {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #a0a0a0;">Cargando órdenes...</td></tr>`;
 
     try {
-        const response = await fetch('http://localhost:3001/api/ordenes', {
+        const response = await fetch(`${API_URL}/ordenes`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -337,7 +369,7 @@ window.cambiarEstadoOrden = async (id, estado) => {
     }
 
     try {
-        const response = await fetch(`http://localhost:3001/api/ordenes/${id}`, {
+        const response = await fetch(`${API_URL}/ordenes/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -366,7 +398,7 @@ async function cargarContactos() {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #a0a0a0;">Cargando mensajes...</td></tr>`;
 
     try {
-        const response = await fetch('http://localhost:3001/api/contacto', {
+        const response = await fetch(`${API_URL}/contacto`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -406,7 +438,7 @@ const noQrText = document.getElementById('noQrText');
 
 async function cargarQrOficial() {
     try {
-        const response = await fetch('http://localhost:3001/api/admin/qr');
+        const response = await fetch(`${API_URL}/admin/qr`);
         const data = await response.json();
 
         if (response.ok && data.qr_url) {
@@ -440,7 +472,7 @@ qrForm.addEventListener('submit', async (e) => {
     formData.append('qr', qrFileInput.files[0]);
 
     try {
-        const response = await fetch('http://localhost:3001/api/admin/qr', {
+        const response = await fetch(`${API_URL}/admin/qr`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -485,7 +517,7 @@ async function cargarVariantes(productId) {
     variantsTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #a0a0a0; padding: 15px;">Cargando variantes...</td></tr>`;
 
     try {
-        const response = await fetch(`http://localhost:3001/api/productos/${productId}/variantes`);
+        const response = await fetch(`${API_URL}/productos/${productId}/variantes`);
         const variantes = await response.json();
 
         if (response.ok && variantes.length > 0) {
@@ -527,7 +559,7 @@ variantForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        const response = await fetch(`http://localhost:3001/api/productos/${productId}/variantes`, {
+        const response = await fetch(`${API_URL}/productos/${productId}/variantes`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -556,7 +588,7 @@ window.eliminarVariante = async (variantId, productId) => {
     }
 
     try {
-        const response = await fetch(`http://localhost:3001/api/productos/variantes/${variantId}`, {
+        const response = await fetch(`${API_URL}/productos/variantes/${variantId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`

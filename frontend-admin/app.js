@@ -9,8 +9,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     mensaje.innerText = 'Conectando...';
 
     try {
-        // Hacemos la petición POST a tu servidor
-        const response = await fetch('http://localhost:3001/api/auth/login', {
+        // Hacemos la petición POST a tu servidor utilizando la URL dinámica
+        const response = await fetch(`${CONFIG.API_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

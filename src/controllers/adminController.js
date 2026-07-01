@@ -64,3 +64,34 @@ export const obtenerQrOficial = async (req, res) => {
         return res.status(500).json({ error: "Error interno del servidor." });
     }
 };
+
+/**
+ * Crea una nueva categoría de productos.
+ */
+export const crearCategoria = async (req, res) => {
+    try {
+        const { nombre } = req.body;
+        if (!nombre) {
+            return res.status(400).json({ error: "El nombre de la categoría es requerido." });
+        }
+
+        const { data, error } = await supabase
+            .from('categorias')
+            .insert({ nombre: nombre.trim() })
+            .select('*')
+            .single();
+
+        if (error) {
+            console.error("Error al crear categoría en Supabase:", error);
+            return res.status(500).json({ error: "Error al guardar la categoría en la base de datos." });
+        }
+
+        return res.status(201).json({
+            message: "Categoría creada con éxito.",
+            categoria: data
+        });
+    } catch (error) {
+        console.error("Excepción en crearCategoria:", error);
+        return res.status(500).json({ error: "Error interno del servidor." });
+    }
+};

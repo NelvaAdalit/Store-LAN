@@ -163,10 +163,13 @@
                 </div>
                 <div class="input-group">
                     <label for="prodCategoria">Categoría</label>
-                    <select id="prodCategoria" required>
-                        <!-- Se cargará dinámicamente -->
-                        <option value="1">Blusas</option>
-                    </select>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="prodCategoria" required style="flex-grow: 1; margin-bottom: 0;">
+                            <!-- Se cargará dinámicamente -->
+                            <option value="1">Blusas</option>
+                        </select>
+                        <button type="button" id="btnCrearCategoria" class="btn-gold" style="width: auto; padding: 10px 15px;" title="Nueva Categoría"><i class="fas fa-plus"></i></button>
+                    </div>
                 </div>
                 <div class="input-group">
                     <label for="prodImagen">Foto del Producto (Conversión WebP)</label>
@@ -222,6 +225,7 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>
