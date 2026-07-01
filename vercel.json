@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "frontend-client/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "frontend-admin/**",
+      "use": "@vercel/static"
+    }
+  ]
+}
