@@ -670,26 +670,90 @@ body {
 /* --- Responsividad --- */
 @media (max-width: 768px) {
     body {
-        padding-top: 190px;
+        padding-top: 175px; /* Menor espacio superior */
+    }
+    
+    .navbar-wrapper {
+        padding: 8px 12px;
     }
     
     .navbar {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
+        padding: 12px 15px;
+        border-radius: 16px;
+        display: grid;
+        grid-template-areas: 
+            "logo actions"
+            "search search"
+            "links links";
+        gap: 12px;
+        align-items: center;
     }
     
     .logo {
-        text-align: center;
+        grid-area: logo;
+        font-size: 1.35rem;
+        text-align: left;
+        letter-spacing: 1px;
+    }
+    
+    .nav-links-client {
+        grid-area: links;
+        justify-content: center;
+        gap: 20px !important;
+        margin-top: 2px;
+        font-size: 0.85rem;
     }
     
     .search-bar {
+        grid-area: search;
         max-width: 100%;
+        height: 38px;
     }
     
     .nav-actions {
+        grid-area: actions;
         display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        margin-right: 0;
+    }
+    
+    /* Login button as compact circle on mobile */
+    #btnOpenAuth {
+        padding: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 50% !important;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
         justify-content: center;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    #btnOpenAuth span {
+        display: none; /* Oculta el texto "Iniciar Sesión" */
+    }
+    
+    #btnOpenAuth i {
+        margin-right: 0 !important;
+        font-size: 1.1rem;
+    }
+    
+    .btn-cart {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+    }
+    
+    .whatsapp-float {
+        bottom: 20px;
+        left: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.6rem;
     }
     
     .input-row {
@@ -705,11 +769,29 @@ body {
 }
 
 @media (max-width: 480px) {
+    .hero-carousel {
+        height: 310px;
+    }
+    
+    .hero-glass {
+        padding: 25px 20px;
+        margin: 0 10px;
+    }
+    
     .hero-glass h1 {
-        font-size: 1.6rem;
+        font-size: 1.4rem !important;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
     }
     
     .hero-glass p {
+        font-size: 0.8rem !important;
+        margin: 8px auto 15px auto;
+        line-height: 1.4;
+    }
+    
+    .btn-explore {
+        padding: 8px 20px;
         font-size: 0.85rem;
     }
     
