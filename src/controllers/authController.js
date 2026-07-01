@@ -116,3 +116,117 @@ export const register = async (req, res) => {
         return res.status(500).json({ error: "Error interno del servidor" });
     }
 };
+
+/**
+ * Registra un nuevo cliente en la tabla 'clientes'.
+ */
+export const registrarCliente = async (req, res) => {
+    try {
+        const { nombre, email, password, telefono } = req.body;
+
+        if (!nombre || !email || !password) {
+            return res.status(400).json({ error: "Nombre, correo y contraseña son requeridos" });
+        }
+
+        // Validar correo
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: "El formato del correo electrónico no es válido" });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+        }
+
+        // Verificar duplicados en clientes
+        const { data: clienteExistente } = await supabase
+            .from('clientes')
+            .select('id')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (clienteExistente) {
+            return res.status(400).json({ error: "El correo electrónico ya está registrado en una cuenta de cliente" });
+        }
+
+        // Encriptar contraseña
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        // Guardar cliente
+        const { data: nuevoCliente, error: dbError } = await supabase
+            .from('clientes')
+            .insert({
+                nombre,
+                email,
+                password: passwordHash,
+                telefono: telefono || null
+            })
+            .select('id, nombre, email')
+            .single();
+
+        if (dbError) {
+            console.error("Error al registrar cliente en Supabase:", dbError);
+            return res.status(500).json({ error: "Error en el servidor al registrar el cliente" });
+        }
+
+        return res.status(201).json({
+            message: "Registro completado exitosamente",
+            cliente: nuevoCliente
+        });
+    } catch (err) {
+        console.error("Excepción en registrarCliente:", err);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+};
+
+/**
+ * Inicia sesión de cliente validando contra la tabla 'clientes'.
+ */
+export const loginCliente = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: "El correo y la contraseña son requeridos" });
+        }
+
+        // Buscar cliente
+        const { data: cliente, error } = await supabase
+            .from('clientes')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error al buscar cliente:", error);
+            return res.status(500).json({ error: "Error en el servidor al intentar autenticar" });
+        }
+
+        if (!cliente) {
+            return res.status(401).json({ error: "Correo o contraseña incorrectos" });
+        }
+
+        // Verificar contraseña
+        const esValida = await bcrypt.compare(password, cliente.password);
+        if (!esValida) {
+            return res.status(401).json({ error: "Correo o contraseña incorrectos" });
+        }
+
+        // Firmar Token JWT con rol 'cliente'
+        const token = jwt.sign({ id: cliente.id, nombre: cliente.nombre, rol: 'cliente' }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        return res.json({
+            message: "Inicio de sesión exitoso",
+            token,
+            cliente: {
+                id: cliente.id,
+                nombre: cliente.nombre,
+                email: cliente.email
+            }
+        });
+    } catch (err) {
+        console.error("Excepción en loginCliente:", err);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+};

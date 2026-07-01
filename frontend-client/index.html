@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STORE LAN - Tienda de Moda</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Esferas de fondo de la marca -->
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Menú de Navegación Flotante -->
+    <header class="navbar-wrapper">
+        <nav class="navbar glass-card">
+            <div class="logo">STORE LAN</div>
+            <div style="display: flex; gap: 25px; align-items: center;" class="nav-links-client">
+                <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" style="color: white; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.3s;">Inicio</a>
+                <a href="#catalogo" style="color: white; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.3s;">Tienda</a>
+                <a href="#contactoSection" style="color: white; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.3s;">Contacto</a>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchQuery" placeholder="Buscar prendas de seda, algodón...">
+                <button id="btnSearch"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="nav-actions">
+                <button id="btnOpenAuth" class="btn-outline" style="padding: 10px 18px; font-size: 0.9rem; border-radius: 8px; margin-right: 15px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer;">
+                    <i class="fas fa-user-circle" style="margin-right: 5px;"></i> <span id="clientNameNav">Iniciar Sesión</span>
+                </button>
+                <button id="btnOpenCart" class="btn-cart">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span id="cartCount" class="badge">0</span>
+                </button>
+            </div>
+        </nav>
+        <div class="category-filters-container">
+            <div class="category-filters glass-card" id="categoryList">
+                <button class="active" data-cat="all">Todos</button>
+                <!-- Categorías se cargan dinámicamente -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner Hero Promocional -->
+    <section class="hero-section">
+        <div class="hero-glass glass-card">
+            <h1>Colección Exclusiva 2026</h1>
+            <p>Descubre prendas premium de seda, lino y algodón confeccionadas a tu medida.</p>
+            <button class="btn-explore" onclick="document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})">Ver Catálogo</button>
+        </div>
+    </section>
+
+    <!-- Catálogo de Productos -->
+    <main class="store-catalog" id="catalogo">
+        <div class="catalog-header">
+            <h2>Nuestras Prendas</h2>
+        </div>
+        <div class="catalog-grid" id="catalogGrid">
+            <!-- Productos cargados dinámicamente -->
+            <div class="loading-spinner">Cargando productos...</div>
+        </div>
+    </main>
+
+    <!-- Formulario de Contacto -->
+    <section class="contact-section" id="contactoSection">
+        <div class="contact-glass glass-card">
+            <h2>Escríbenos</h2>
+            <p>¿Interesada en alguna prenda a medida? Envíanos tu mensaje y te asesoraremos.</p>
+            <form id="clientContactForm">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="nombre">Nombre Completo</label>
+                        <input type="text" id="nombre" required placeholder="Ej. Nelva Adalid">
+                    </div>
+                    <div class="input-group">
+                        <label for="email">Correo Electrónico</label>
+                        <input type="email" id="email" required placeholder="correo@example.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="mensaje">Mensaje o Prenda de interés</label>
+                    <textarea id="mensaje" required placeholder="Deseo consultar sobre..."></textarea>
+                </div>
+                <button type="submit" class="btn-gold">Enviar Consulta</button>
+            </form>
+            <p id="contactResponse"></p>
+        </div>
+    </section>
+
+    <!-- Carrito de Compras (Sidebar Desplegable) -->
+    <div id="cartSidebar" class="cart-sidebar glass-card" style="transform: translateX(105%);">
+        <div class="cart-header">
+            <h3>Bolsa de Compras</h3>
+            <button id="btnCloseCart" class="btn-close">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItemsContainer">
+            <!-- Items del carrito -->
+            <p class="empty-cart-text">Tu bolsa de compras está vacía.</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span>Total:</span>
+                <span id="cartTotalSum">Bs. 0</span>
+            </div>
+            <button id="btnCheckout" class="btn-gold" style="width: 100%; border-radius: 12px; margin-top: 15px;">Confirmar Pedido</button>
+        </div>
+    </div>
+
+    <!-- Botón Flotante de WhatsApp -->
+    <a href="https://wa.me/591XXXXXXXXX?text=Hola%20STORE%20LAN,%20quisiera%20consultar%20sobre%20un%20producto" class="whatsapp-float" target="_blank" title="Chatear con un asesor">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer class="social-footer glass-card">
+        <p>&copy; 2026 STORE LAN. Todos los derechos reservados.</p>
+        <div class="social-links">
+            <a href="#" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+        </div>
+    </footer>
+
+    <!-- Modal de Autenticación de Cliente (Login/Registro) -->
+    <div id="authModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-modal" id="btnCloseAuthModal">&times;</span>
+            
+            <!-- Pestañas -->
+            <div style="display: flex; gap: 25px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <h3 id="tabLogin" class="auth-tab active" style="cursor: pointer; color: #e6c27a; font-weight: 600;">Iniciar Sesión</h3>
+                <h3 id="tabRegister" class="auth-tab" style="cursor: pointer; color: #a0a0a0; font-weight: 500;">Registrarse</h3>
+            </div>
+
+            <!-- Formulario Login -->
+            <form id="clientLoginForm">
+                <div class="input-group">
+                    <label for="loginEmail">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" required placeholder="correo@example.com">
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••">
+                </div>
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 12px; margin-top: 10px;">Entrar</button>
+                <div style="text-align: center; margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 15px;">
+                    <a href="../frontend-admin/index.html" style="color: #e6c27a; font-size: 0.85rem; text-decoration: none; font-weight: 500;"><i class="fas fa-lock" style="margin-right: 5px;"></i> Acceso Administrativo</a>
+                </div>
+            </form>
+
+            <!-- Formulario Registro -->
+            <form id="clientRegisterForm" style="display: none;">
+                <div class="input-group">
+                    <label for="regNombre">Nombre Completo</label>
+                    <input type="text" id="regNombre" required placeholder="Ej. Nelva Adalid">
+                </div>
+                <div class="input-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <input type="email" id="regEmail" required placeholder="correo@example.com">
+                </div>
+                <div class="input-group">
+                    <label for="regTelf">Teléfono / Celular</label>
+                    <input type="text" id="regTelf" placeholder="Ej. 70000000">
+                </div>
+                <div class="input-group">
+                    <label for="regPassword">Contraseña (Mínimo 6 caracteres)</label>
+                    <input type="password" id="regPassword" required placeholder="••••••">
+                </div>
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 12px; margin-top: 10px;">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout / Pago QR -->
+    <div id="checkoutModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px; text-align: center; color: white;">
+            <span class="close-modal" id="btnCloseCheckoutModal">&times;</span>
+            <h3 style="color: #e6c27a; margin-bottom: 15px;">Finalizar Pedido</h3>
+            
+            <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; color: #d0d0d0;">
+                Para completar tu pedido, escanea el código QR de pago oficial de la tienda, realiza la transferencia y sube tu comprobante de pago abajo.
+            </p>
+
+            <div style="margin-bottom: 25px;">
+                <img id="checkoutQrImg" src="" alt="Cargando QR oficial de pago..." style="max-width: 220px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.4); padding: 8px; background: white; margin-bottom: 15px;">
+                <div style="color: #e6c27a; font-weight: bold; font-size: 1.25rem;">
+                    Monto total a transferir: <span id="checkoutMonto">Bs. 0</span>
+                </div>
+            </div>
+
+            <form id="checkoutForm" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label for="comprobanteFile">Subir Captura del Comprobante (QR / Transferencia)</label>
+                    <input type="file" id="comprobanteFile" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 14px; font-weight: bold; font-size: 0.95rem;">Enviar Comprobante y Registrar Pedido</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

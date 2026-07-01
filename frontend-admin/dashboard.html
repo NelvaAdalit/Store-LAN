@@ -18,9 +18,10 @@
             <h2 class="brand-text">STORE LAN</h2>
         </div>
         <ul class="nav-links">
-            <li><a href="#" class="active"><i class="fas fa-box"></i> Productos</a></li>
-            <li><a href="#"><i class="fas fa-shopping-cart"></i> Órdenes</a></li>
-            <li><a href="#"><i class="fas fa-users"></i> Clientes</a></li>
+            <li><a href="#" id="linkProductos" class="active"><i class="fas fa-box"></i> Productos</a></li>
+            <li><a href="#" id="linkOrdenes"><i class="fas fa-shopping-cart"></i> Órdenes</a></li>
+            <li><a href="#" id="linkClientes"><i class="fas fa-users"></i> Clientes</a></li>
+            <li><a href="#" id="linkQrConfig"><i class="fas fa-qrcode"></i> Configurar QR</a></li>
         </ul>
         <div class="sidebar-footer">
             <button id="btnLogout" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Salir</button>
@@ -36,7 +37,8 @@
             </div>
         </nav>
 
-        <section class="content-area">
+        <!-- Sección de Productos -->
+        <section id="productosSection" class="content-area">
             <div class="table-header">
                 <h3>Lista de Productos</h3>
                 <button class="btn-gold"><i class="fas fa-plus"></i> Nuevo Producto</button>
@@ -47,6 +49,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Imagen</th>
                             <th>Producto</th>
                             <th>Categoría</th>
                             <th>Precio</th>
@@ -55,13 +58,169 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: #a0a0a0;">Cargando productos...</td>
+                            <td colspan="6" style="text-align: center; color: #a0a0a0;">Cargando productos...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
+
+        <!-- Sección de Órdenes -->
+        <section id="ordenesSection" class="content-area" style="display: none;">
+            <div class="table-header">
+                <h3>Lista de Órdenes</h3>
+            </div>
+            
+            <div class="table-container glass-panel">
+                <table id="ordenesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Comprobante QR</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #a0a0a0;">Cargando órdenes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección de Clientes / Contactos -->
+        <section id="clientesSection" class="content-area" style="display: none;">
+            <div class="table-header">
+                <h3>Mensajes de Contacto</h3>
+            </div>
+            
+            <div class="table-container glass-panel">
+                <table id="contactosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Correo</th>
+                            <th>Mensaje</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #a0a0a0;">Cargando mensajes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección de Configuración de QR -->
+        <section id="qrSection" class="content-area" style="display: none;">
+            <div class="table-header">
+                <h3>Configurar QR de Pago Oficial</h3>
+            </div>
+            <div class="glass-panel" style="padding: 30px; max-width: 500px; color: white;">
+                <p style="margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; color: #d0d0d0;">Sube el código QR oficial de tu cuenta bancaria o billetera móvil para que los clientes realicen el pago en el checkout.</p>
+                <form id="qrForm" style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="input-group">
+                        <label for="qrFile">Seleccionar Imagen del Código QR</label>
+                        <input type="file" id="qrFile" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn-gold" style="width: auto; align-self: flex-start;">Actualizar QR Oficial</button>
+                </form>
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                    <h4 style="color: #e6c27a; margin-bottom: 15px;">Código QR Actual:</h4>
+                    <img id="currentQrImg" src="" alt="Cargando QR oficial..." style="max-width: 250px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3); background: white; padding: 10px; display: none;">
+                    <p id="noQrText" style="color: #a0a0a0; display: none;">No se ha subido ningún código QR oficial aún.</p>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <!-- Modal para Agregar/Editar Producto -->
+    <div id="productModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" id="btnCloseModal">&times;</span>
+            <h3 id="modalTitle">Nuevo Producto</h3>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="input-group">
+                    <label for="prodNombre">Nombre del Producto</label>
+                    <input type="text" id="prodNombre" required placeholder="Ej. Blusa de Seda">
+                </div>
+                <div class="input-group">
+                    <label for="prodDescripcion">Descripción</label>
+                    <textarea id="prodDescripcion" placeholder="Detalles de la prenda..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="prodPrecio">Precio (Bs.)</label>
+                    <input type="number" id="prodPrecio" required min="0" placeholder="0">
+                </div>
+                <div class="input-group">
+                    <label for="prodCategoria">Categoría</label>
+                    <select id="prodCategoria" required>
+                        <!-- Se cargará dinámicamente -->
+                        <option value="1">Blusas</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="prodImagen">Foto del Producto (Conversión WebP)</label>
+                    <input type="file" id="prodImagen" accept="image/*">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btnCancelModal" class="btn-outline">Cancelar</button>
+                    <button type="submit" class="btn-gold">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Gestionar Variantes y Stock -->
+    <div id="variantsModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" id="btnCloseVariantsModal">&times;</span>
+            <h3 id="variantsModalTitle" style="color: #e6c27a; margin-bottom: 20px;">Gestionar Variantes y Stock</h3>
+            
+            <div style="margin-bottom: 25px; max-height: 250px; overflow-y: auto;" class="glass-panel">
+                <table id="variantsTable" style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #e6c27a;">
+                            <th style="padding: 10px;">Talla</th>
+                            <th style="padding: 10px;">Color</th>
+                            <th style="padding: 10px;">Stock</th>
+                            <th style="padding: 10px; text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Variantes cargadas dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <h4 style="color: #e6c27a; margin-bottom: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">Añadir Variante / Stock</h4>
+            <form id="variantForm" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <input type="hidden" id="varProductId">
+                <div class="input-group" style="margin-bottom: 0; min-width: 100px; flex: 1;">
+                    <label for="varTalla">Talla</label>
+                    <input type="text" id="varTalla" required placeholder="Ej. M" style="padding: 10px;">
+                </div>
+                <div class="input-group" style="margin-bottom: 0; min-width: 120px; flex: 1.5;">
+                    <label for="varColor">Color</label>
+                    <input type="text" id="varColor" required placeholder="Ej. Blanco" style="padding: 10px;">
+                </div>
+                <div class="input-group" style="margin-bottom: 0; min-width: 100px; flex: 1;">
+                    <label for="varStock">Cantidad</label>
+                    <input type="number" id="varStock" required min="0" placeholder="0" style="padding: 10px;">
+                </div>
+                <button type="submit" class="btn-gold" style="padding: 12px 20px;"><i class="fas fa-plus"></i> Agregar</button>
+            </form>
+        </div>
+    </div>
 
     <script src="dashboard.js"></script>
 </body>

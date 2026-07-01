@@ -4,12 +4,18 @@ import cors from 'cors';
 import { supabase } from './config/supabaseClient.js';
 import productoRoutes from './routes/productoRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import contactoRoutes from './routes/contactoRoutes.js';
+import ordenRoutes from './routes/ordenRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/productos', productoRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/contacto', contactoRoutes);
+app.use('/api/ordenes', ordenRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Ruta de prueba para verificar que la DB está conectada
 app.get('/api/test-db', async (req, res) => {

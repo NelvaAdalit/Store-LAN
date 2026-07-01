@@ -408,3 +408,106 @@ tr:hover td {
 .btn-outline:hover {
     background: rgba(212, 175, 55, 0.1);
 }
+
+/* --- Modal Glassmorphism --- */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: rgba(25, 25, 25, 0.8);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    color: white;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6);
+    position: relative;
+    box-sizing: border-box;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 1.8rem;
+    color: #a0a0a0;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close-modal:hover {
+    color: #ff4d4d;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #e6c27a;
+    font-weight: 400;
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+}
+
+.modal-content textarea {
+    width: 100%;
+    height: 80px;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    resize: none;
+    margin-bottom: 15px;
+    transition: 0.3s;
+}
+
+.modal-content textarea:focus {
+    box-shadow: 0 0 0 1px #d4af37;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content select {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.modal-content select option {
+    background: #1a1a1a;
+    color: white;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.form-actions button {
+    width: auto;
+    padding: 10px 25px;
+}
