@@ -193,7 +193,101 @@ export const actualizarEstadoOrden = async (req, res) => {
             return res.status(400).json({ error: "El estado de la orden es requerido." });
         }
 
-        // Actualizar en base de datos
+        // 1. Obtener la orden previa para saber su estado anterior
+        const { data: ordenPrevia, error: getError } = await supabase
+            .from('ordenes')
+            .select('estado')
+            .eq('id', parseInt(id))
+            .single();
+
+        if (getError || !ordenPrevia) {
+            return res.status(404).json({ error: "Orden no encontrada." });
+        }
+
+        const estadoAnterior = ordenPrevia.estado;
+
+        // Si no hay cambio, retornar de inmediato
+        if (estadoAnterior === estado) {
+            return res.json({ message: "La orden ya se encuentra en ese estado." });
+        }
+
+        // 2. Si pasa a 'Aprobado' (y antes no lo estaba), restar del stock de las variantes
+        if (estado === 'Aprobado' && estadoAnterior !== 'Aprobado') {
+            const { data: detalles, error: detError } = await supabase
+                .from('detalle_orden')
+                .select('id_variante, cantidad')
+                .eq('id_orden', parseInt(id));
+
+            if (detError || !detalles) {
+                return res.status(500).json({ error: "Error al recuperar los detalles de la orden." });
+            }
+
+            // Validar stock disponible
+            for (const d of detalles) {
+                if (d.id_variante) {
+                    const { data: varData, error: varError } = await supabase
+                        .from('variantes')
+                        .select('stock, talla, color')
+                        .eq('id', d.id_variante)
+                        .single();
+
+                    if (varError || !varData) {
+                        return res.status(400).json({ error: "Una de las variantes del producto ya no existe." });
+                    }
+
+                    if (varData.stock < d.cantidad) {
+                        return res.status(400).json({ 
+                            error: `Stock insuficiente para la variante Talla: ${varData.talla} - Color: ${varData.color}. Disponible: ${varData.stock}, Requerido: ${d.cantidad}.` 
+                        });
+                    }
+                }
+            }
+
+            // Descontar del stock
+            for (const d of detalles) {
+                if (d.id_variante) {
+                    const { data: varData } = await supabase
+                        .from('variantes')
+                        .select('stock')
+                        .eq('id', d.id_variante)
+                        .single();
+
+                    await supabase
+                        .from('variantes')
+                        .update({ stock: varData.stock - d.cantidad })
+                        .eq('id', d.id_variante);
+                }
+            }
+        }
+
+        // 3. Si pasa a 'Cancelado' y estaba 'Aprobado', devolver/restaurar stock de las variantes
+        if (estado === 'Cancelado' && estadoAnterior === 'Aprobado') {
+            const { data: detalles } = await supabase
+                .from('detalle_orden')
+                .select('id_variante, cantidad')
+                .eq('id_orden', parseInt(id));
+
+            if (detalles) {
+                for (const d of detalles) {
+                    if (d.id_variante) {
+                        const { data: varData } = await supabase
+                            .from('variantes')
+                            .select('stock')
+                            .eq('id', d.id_variante)
+                            .single();
+
+                        if (varData) {
+                            await supabase
+                                .from('variantes')
+                                .update({ stock: varData.stock + d.cantidad })
+                                .eq('id', d.id_variante);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Actualizar en base de datos
         const { data, error } = await supabase
             .from('ordenes')
             .update({ estado })

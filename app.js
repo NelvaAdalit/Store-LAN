@@ -118,6 +118,30 @@ async function obtenerCatalogo() {
                     ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.85rem; margin-right: 8px;">Bs. ${producto.precio}</span>Bs. ${producto.precio_oferta}`
                     : `Bs. ${producto.precio}`;
 
+                // Calcular stock total
+                const variantesActivas = producto.variantes ? producto.variantes.filter(v => v.estado_activo !== false) : [];
+                const totalStock = variantesActivas.reduce((sum, v) => sum + (v.stock || 0), 0);
+                
+                let stockHtml = '';
+                let btnAddHtml = `
+                    <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${precioCompra}, '${fotoUrl}')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                `;
+
+                if (totalStock === 0) {
+                    stockHtml = `<span style="color: #ff4d4d; font-size: 0.8rem; font-weight: bold; display: block; margin-top: 5px;"><i class="fas fa-times-circle"></i> Agotado</span>`;
+                    btnAddHtml = `
+                        <button class="btn-add-cart" disabled style="background: rgba(255,255,255,0.05); color: #777; cursor: not-allowed;" onclick="event.stopPropagation();">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                    `;
+                } else if (totalStock === 1) {
+                    stockHtml = `<span style="color: #ffb703; font-size: 0.8rem; font-weight: bold; display: block; margin-top: 5px;"><i class="fas fa-exclamation-triangle"></i> ¡Última disponible!</span>`;
+                } else {
+                    stockHtml = `<span style="color: #25d366; font-size: 0.8rem; font-weight: 500; display: block; margin-top: 5px;"><i class="fas fa-check-circle"></i> Stock: ${totalStock} un.</span>`;
+                }
+
                 catalogGrid.innerHTML += `
                     <div class="product-card glass-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${precioCompra}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}', ${producto.precio})">
                         <div class="img-container" style="position: relative;">
@@ -127,12 +151,11 @@ async function obtenerCatalogo() {
                         <div class="product-info">
                             <span class="product-cat">${categoriaNombre}</span>
                             <h3 class="product-title">${producto.nombre}</h3>
+                            ${stockHtml}
                             <p class="product-desc">${producto.descripcion || 'Sin descripción disponible.'}</p>
                             <div class="product-price-row">
                                 <span class="product-price">${precioHtml}</span>
-                                <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${precioCompra}, '${fotoUrl}')">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                ${btnAddHtml}
                             </div>
                         </div>
                     </div>
@@ -174,6 +197,30 @@ async function obtenerUltimosIngresos() {
                     ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.8rem; margin-right: 8px;">Bs. ${producto.precio}</span>Bs. ${producto.precio_oferta}`
                     : `Bs. ${producto.precio}`;
 
+                // Calcular stock total
+                const variantesActivas = producto.variantes ? producto.variantes.filter(v => v.estado_activo !== false) : [];
+                const totalStock = variantesActivas.reduce((sum, v) => sum + (v.stock || 0), 0);
+                
+                let stockHtml = '';
+                let btnAddHtml = `
+                    <button class="btn-novedades-add" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${precioCompra}, '${fotoUrl}')">
+                        Añadir al Carrito
+                    </button>
+                `;
+
+                if (totalStock === 0) {
+                    stockHtml = `<span style="color: #ff4d4d; font-size: 0.8rem; font-weight: bold; display: block; margin: 5px 0;"><i class="fas fa-times-circle"></i> Agotado</span>`;
+                    btnAddHtml = `
+                        <button class="btn-novedades-add" disabled style="background: rgba(255,255,255,0.05); color: #777; cursor: not-allowed;" onclick="event.stopPropagation();">
+                            Agotado
+                        </button>
+                    `;
+                } else if (totalStock === 1) {
+                    stockHtml = `<span style="color: #ffb703; font-size: 0.8rem; font-weight: bold; display: block; margin: 5px 0;"><i class="fas fa-exclamation-triangle"></i> ¡Última disponible!</span>`;
+                } else {
+                    stockHtml = `<span style="color: #25d366; font-size: 0.8rem; font-weight: 500; display: block; margin: 5px 0;"><i class="fas fa-check-circle"></i> Stock: ${totalStock} un.</span>`;
+                }
+
                 targetGrid.innerHTML += `
                     <div class="novedades-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${precioCompra}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}', ${producto.precio})">
                         <div class="novedades-img-container">
@@ -182,10 +229,9 @@ async function obtenerUltimosIngresos() {
                         </div>
                         <div class="novedades-info">
                             <h3 class="novedades-title">${producto.nombre}</h3>
+                            ${stockHtml}
                             <span class="novedades-price">${precioHtml}</span>
-                            <button class="btn-novedades-add" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${precioCompra}, '${fotoUrl}')">
-                                Añadir al Carrito
-                            </button>
+                            ${btnAddHtml}
                         </div>
                     </div>
                 `;

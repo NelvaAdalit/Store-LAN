@@ -43,7 +43,7 @@ export const obtenerProductos = async (req, res) => {
         // Iniciamos la consulta base filtering only active products (Soft Delete)
         let query = supabase
             .from('productos')
-            .select('*, categorias(nombre), imagenes(url)')
+            .select('*, categorias(nombre), imagenes(url), variantes(stock, estado_activo)')
             .eq('estado_activo', true);
 
         // 1. Filtrar por término de búsqueda (en nombre o descripción)
