@@ -4,12 +4,13 @@ const API_URL = CONFIG.API_URL;
 // Estado del Carrito (recuperado de localStorage)
 let carrito = JSON.parse(localStorage.getItem('carritoStoreLan')) || [];
 
-// Parámetros de Filtrado Activos
+// Parámetros de Filtrado Activos (para Tienda)
 let filtroCategoria = 'all';
 let filtroBusqueda = '';
 
 // --- Referencias al DOM ---
 const catalogGrid = document.getElementById('catalogGrid');
+const catalogGridHome = document.getElementById('catalogGridHome');
 const categoryList = document.getElementById('categoryList');
 const searchQueryInput = document.getElementById('searchQuery');
 const btnSearch = document.getElementById('btnSearch');
@@ -23,25 +24,31 @@ const cartItemsContainer = document.getElementById('cartItemsContainer');
 const cartTotalSum = document.getElementById('cartTotalSum');
 const btnCheckout = document.getElementById('btnCheckout');
 
-// Contacto DOM
+// Contacto DOM (solo en index.html)
 const clientContactForm = document.getElementById('clientContactForm');
 const contactResponse = document.getElementById('contactResponse');
 
 // --- 1. Inicialización y Carga de Datos ---
 document.addEventListener('DOMContentLoaded', () => {
-    cargarCategorias();
-    obtenerCatalogo();
+    if (catalogGridHome) {
+        // Estamos en index.html (Home) - Cargar Últimos Ingresos (limit=5, orden=id_desc)
+        obtenerUltimosIngresos();
+    } else if (catalogGrid) {
+        // Estamos en tienda.html (Tienda) - Cargar catálogo completo y categorías
+        cargarCategorias();
+        obtenerCatalogo();
+    }
     actualizarCarritoDOM();
 });
 
-// Cargar categorías dinámicamente
+// Cargar categorías dinámicamente (solo en tienda.html)
 async function cargarCategorias() {
+    if (!categoryList) return;
     try {
         const response = await fetch(`${API_URL}/test-db`); // endpoint que retorna las categorías
         const result = await response.json();
         
         if (response.ok && result.data) {
-            // Mantener el botón 'Todos'
             categoryList.innerHTML = `<button class="active" data-cat="all">Todos</button>`;
             
             result.data.forEach(cat => {
@@ -65,11 +72,11 @@ async function cargarCategorias() {
     }
 }
 
-// Cargar catálogo de productos con filtros
+// Cargar catálogo de productos con filtros (solo en tienda.html)
 async function obtenerCatalogo() {
+    if (!catalogGrid) return;
     catalogGrid.innerHTML = `<div class="loading-spinner" style="grid-column: 1/-1; text-align: center; padding: 50px; color: #a0a0a0;">Cargando catálogo...</div>`;
     
-    // Construir query string de búsqueda
     const params = new URLSearchParams();
     if (filtroCategoria !== 'all') {
         params.append('categoria', filtroCategoria);
@@ -91,9 +98,16 @@ async function obtenerCatalogo() {
                 const categoriaNombre = producto.categorias?.nombre || producto.categorias || 'Colección';
                 const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
 
+                // Determinar si tiene etiqueta de oferta (demo balanceado)
+                const esOferta = producto.nombre.toLowerCase().includes('oferta') || 
+                                 (producto.descripcion && producto.descripcion.toLowerCase().includes('oferta')) ||
+                                 producto.id % 2 === 0;
+                const badgeHtml = esOferta ? `<span class="badge-oferta">Oferta</span>` : '';
+
                 catalogGrid.innerHTML += `
                     <div class="product-card glass-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${producto.precio}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}')">
-                        <div class="img-container">
+                        <div class="img-container" style="position: relative;">
+                            ${badgeHtml}
                             <img src="${fotoUrl}" alt="${producto.nombre}" loading="lazy">
                         </div>
                         <div class="product-info">
@@ -119,18 +133,70 @@ async function obtenerCatalogo() {
     }
 }
 
-// Búsqueda por texto
-btnSearch.addEventListener('click', () => {
-    filtroBusqueda = searchQueryInput.value.trim();
-    obtenerCatalogo();
-});
+// Cargar Últimos Ingresos (solo en index.html - Home)
+async function obtenerUltimosIngresos() {
+    if (!catalogGridHome) return;
+    catalogGridHome.innerHTML = `<div class="loading-spinner" style="text-align: center; color: #a0a0a0; padding: 50px; width: 100%; grid-column: 1/-1;">Cargando novedades...</div>`;
 
-searchQueryInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
+    try {
+        // Cargar últimos 5 productos creados
+        const response = await fetch(`${API_URL}/productos?limit=5&orden=id_desc`);
+        const result = await response.json();
+
+        const productos = Array.isArray(result) ? result : (result.data || []);
+
+        if (response.ok && productos.length > 0) {
+            catalogGridHome.innerHTML = '';
+            
+            productos.forEach(producto => {
+                const categoriaNombre = producto.categorias?.nombre || producto.categorias || 'Colección';
+                const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
+
+                // Determinar si tiene etiqueta de oferta (demo balanceado)
+                const esOferta = producto.nombre.toLowerCase().includes('oferta') || 
+                                 (producto.descripcion && producto.descripcion.toLowerCase().includes('oferta')) ||
+                                 producto.id % 2 === 0;
+                const badgeHtml = esOferta ? `<span class="badge-oferta">Oferta</span>` : '';
+
+                catalogGridHome.innerHTML += `
+                    <div class="novedades-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${producto.precio}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}')">
+                        <div class="novedades-img-container">
+                            ${badgeHtml}
+                            <img src="${fotoUrl}" alt="${producto.nombre}" loading="lazy">
+                        </div>
+                        <div class="novedades-info">
+                            <h3 class="novedades-title">${producto.nombre}</h3>
+                            <span class="novedades-price">Bs. ${producto.precio}</span>
+                            <button class="btn-novedades-add" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${producto.precio}, '${fotoUrl}')">
+                                Añadir al Carrito
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            catalogGridHome.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #a0a0a0;">No hay novedades disponibles en este momento.</div>`;
+        }
+    } catch (error) {
+        console.error("Error cargando novedades:", error);
+        catalogGridHome.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #ff4d4d;">Error de comunicación con el servidor backend.</div>`;
+    }
+}
+
+// Búsqueda por texto (solo en tienda.html)
+if (btnSearch && searchQueryInput) {
+    btnSearch.addEventListener('click', () => {
         filtroBusqueda = searchQueryInput.value.trim();
         obtenerCatalogo();
-    }
-});
+    });
+
+    searchQueryInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            filtroBusqueda = searchQueryInput.value.trim();
+            obtenerCatalogo();
+        }
+    });
+}
 
 // --- 2. Lógica del Carrito ---
 
@@ -145,7 +211,6 @@ btnCloseCart.addEventListener('click', () => {
 
 // Agregar item
 window.agregarAlCarrito = (id, nombre, precio, foto, cantidad = 1, idVariante = null) => {
-    // Si hay idVariante, usamos ese ID como el identificador del item en el carrito
     const idItem = idVariante ? idVariante : id;
     const itemExistente = carrito.find(item => item.id === idItem);
 
@@ -163,8 +228,6 @@ window.agregarAlCarrito = (id, nombre, precio, foto, cantidad = 1, idVariante = 
 
     guardarCarrito();
     actualizarCarritoDOM();
-    
-    // Abre el carrito automáticamente para dar feedback visual
     cartSidebar.style.transform = 'translateX(0)';
 };
 
@@ -195,11 +258,9 @@ function guardarCarrito() {
 
 // Actualizar vista del carrito
 function actualizarCarritoDOM() {
-    // Contador en navbar
     const cantidadTotal = carrito.reduce((acc, item) => acc + item.cantidad, 0);
     cartCount.innerText = cantidadTotal;
 
-    // Cuerpo del Carrito
     if (carrito.length === 0) {
         cartItemsContainer.innerHTML = `<p class="empty-cart-text">Tu bolsa de compras está vacía.</p>`;
         cartTotalSum.innerText = 'Bs. 0';
@@ -248,44 +309,45 @@ btnCheckout.addEventListener('click', async () => {
         return;
     }
 
-    // Si ya inició sesión, abrimos el modal de Pago QR
     abrirCheckoutModal();
 });
 
 // --- 3. Formulario de Contacto ---
-clientContactForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+if (clientContactForm) {
+    clientContactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    const nombre = document.getElementById('nombre').value;
-    const email = document.getElementById('email').value;
-    const mensaje = document.getElementById('mensaje').value;
+        const nombre = document.getElementById('nombre').value;
+        const email = document.getElementById('email').value;
+        const mensaje = document.getElementById('mensaje').value;
 
-    contactResponse.innerText = "Enviando mensaje...";
-    contactResponse.style.color = "#e6c27a";
+        contactResponse.innerText = "Enviando mensaje...";
+        contactResponse.style.color = "#e6c27a";
 
-    try {
-        const response = await fetch(`${API_URL}/contacto`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, email, mensaje })
-        });
+        try {
+            const response = await fetch(`${API_URL}/contacto`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, email, mensaje })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (response.ok) {
-            contactResponse.innerText = "¡Mensaje enviado exitosamente! Nos contactaremos a la brevedad.";
-            contactResponse.style.color = "#25d366";
-            clientContactForm.reset();
-        } else {
-            contactResponse.innerText = data.error || "No se pudo enviar el mensaje.";
+            if (response.ok) {
+                contactResponse.innerText = "¡Mensaje enviado exitosamente! Nos contactaremos a la brevedad.";
+                contactResponse.style.color = "#25d366";
+                clientContactForm.reset();
+            } else {
+                contactResponse.innerText = data.error || "No se pudo enviar el mensaje.";
+                contactResponse.style.color = "#ff4d4d";
+            }
+        } catch (error) {
+            console.error("Error al enviar mensaje de contacto:", error);
+            contactResponse.innerText = "Error de conexión con el servidor.";
             contactResponse.style.color = "#ff4d4d";
         }
-    } catch (error) {
-        console.error("Error al enviar mensaje de contacto:", error);
-        contactResponse.innerText = "Error de conexión con el servidor.";
-        contactResponse.style.color = "#ff4d4d";
-    }
-});
+    });
+}
 
 // --- 4. Autenticación y Checkout con Pago QR ---
 
@@ -309,135 +371,141 @@ const comprobanteFileInput = document.getElementById('comprobanteFile');
 
 // Cargar Nombre de Cliente al iniciar
 const nombreGuardado = localStorage.getItem('nombreCliente');
-if (nombreGuardado) {
+if (nombreGuardado && clientNameNav) {
     clientNameNav.innerText = nombreGuardado.split(' ')[0]; // Primer nombre
 }
 
 // Evento botón Mi Cuenta / Iniciar Sesión
-btnOpenAuth.addEventListener('click', async () => {
-    const sesionActiva = localStorage.getItem('sesionClienteActiva');
-    if (sesionActiva) {
-        if (confirm("¿Deseas cerrar tu sesión de cliente?")) {
-            try {
-                await fetch(`${API_URL}/auth/logout`, { method: 'POST' });
-            } catch (e) {
-                console.error("Error cerrando sesión:", e);
+if (btnOpenAuth) {
+    btnOpenAuth.addEventListener('click', async () => {
+        const sesionActiva = localStorage.getItem('sesionClienteActiva');
+        if (sesionActiva) {
+            if (confirm("¿Deseas cerrar tu sesión de cliente?")) {
+                try {
+                    await fetch(`${API_URL}/auth/logout`, { method: 'POST' });
+                } catch (e) {
+                    console.error("Error cerrando sesión:", e);
+                }
+                localStorage.removeItem('tokenCliente');
+                localStorage.removeItem('nombreCliente');
+                localStorage.removeItem('sesionClienteActiva');
+                if (clientNameNav) clientNameNav.innerText = "Iniciar Sesión";
+                window.location.reload();
             }
-            localStorage.removeItem('tokenCliente');
-            localStorage.removeItem('nombreCliente');
-            localStorage.removeItem('sesionClienteActiva');
-            clientNameNav.innerText = "Iniciar Sesión";
-            window.location.reload();
+        } else {
+            authModal.style.display = 'flex';
         }
-    } else {
-        authModal.style.display = 'flex';
-    }
-});
+    });
+}
 
-btnCloseAuthModal.addEventListener('click', () => {
-    authModal.style.display = 'none';
-});
+if (btnCloseAuthModal) {
+    btnCloseAuthModal.addEventListener('click', () => {
+        authModal.style.display = 'none';
+    });
+}
 
 // Pestañas
-tabLogin.addEventListener('click', () => {
-    tabLogin.classList.add('active');
-    tabLogin.style.color = '#e6c27a';
-    tabRegister.classList.remove('active');
-    tabRegister.style.color = '#a0a0a0';
-    clientLoginForm.style.display = 'block';
-    clientRegisterForm.style.display = 'none';
-});
+if (tabLogin && tabRegister) {
+    tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('active');
+        tabLogin.style.color = '#e6c27a';
+        tabRegister.classList.remove('active');
+        tabRegister.style.color = '#a0a0a0';
+        clientLoginForm.style.display = 'block';
+        clientRegisterForm.style.display = 'none';
+    });
 
-tabRegister.addEventListener('click', () => {
-    tabRegister.classList.add('active');
-    tabRegister.style.color = '#e6c27a';
-    tabLogin.classList.remove('active');
-    tabLogin.style.color = '#a0a0a0';
-    clientRegisterForm.style.display = 'block';
-    clientLoginForm.style.display = 'none';
-});
+    tabRegister.addEventListener('click', () => {
+        tabRegister.classList.add('active');
+        tabRegister.style.color = '#e6c27a';
+        tabLogin.classList.remove('active');
+        tabLogin.style.color = '#a0a0a0';
+        clientRegisterForm.style.display = 'block';
+        clientLoginForm.style.display = 'none';
+    });
+}
 
 // Submit Login
-clientLoginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
+if (clientLoginForm) {
+    clientLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
 
-    try {
-        const response = await fetch(`${API_URL}/auth/cliente/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
+        try {
+            const response = await fetch(`${API_URL}/auth/cliente/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (response.ok) {
-            // Autodetección de rol (Admin vs Cliente)
-            if (data.rol === 'admin' || data.rol === 'superadmin') {
-                localStorage.setItem('sesionAdminActiva', 'true');
-                alert("¡Acceso concedido como Administrador! Redireccionando al panel de control...");
-                window.location.href = 'frontend-admin/dashboard.html';
-                return;
+            if (response.ok) {
+                if (data.rol === 'admin' || data.rol === 'superadmin') {
+                    localStorage.setItem('sesionAdminActiva', 'true');
+                    alert("¡Acceso concedido como Administrador! Redireccionando al panel de control...");
+                    window.location.href = 'frontend-admin/dashboard.html';
+                    return;
+                }
+
+                localStorage.setItem('sesionClienteActiva', 'true');
+                localStorage.setItem('nombreCliente', data.cliente.nombre);
+                if (clientNameNav) clientNameNav.innerText = data.cliente.nombre.split(' ')[0];
+                authModal.style.display = 'none';
+                alert(`¡Bienvenido de nuevo, ${data.cliente.nombre}!`);
+
+                if (carrito.length > 0) {
+                    abrirCheckoutModal();
+                }
+            } else {
+                alert(data.error || "Error al iniciar sesión.");
             }
-
-            localStorage.setItem('sesionClienteActiva', 'true');
-            localStorage.setItem('nombreCliente', data.cliente.nombre);
-            clientNameNav.innerText = data.cliente.nombre.split(' ')[0];
-            authModal.style.display = 'none';
-            alert(`¡Bienvenido de nuevo, ${data.cliente.nombre}!`);
-
-            // Si hay productos en el carrito, abrimos el checkout inmediatamente
-            if (carrito.length > 0) {
-                abrirCheckoutModal();
-            }
-        } else {
-            alert(data.error || "Error al iniciar sesión.");
+        } catch (error) {
+            console.error("Error en login cliente:", error);
+            alert("Error de conexión al iniciar sesión.");
         }
-    } catch (error) {
-        console.error("Error en login cliente:", error);
-        alert("Error de conexión al iniciar sesión.");
-    }
-});
+    });
+}
 
 // Submit Registro
-clientRegisterForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nombre = document.getElementById('regNombre').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const telefono = document.getElementById('regTelf').value.trim();
-    const password = document.getElementById('regPassword').value;
+if (clientRegisterForm) {
+    clientRegisterForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('regNombre').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const telefono = document.getElementById('regTelf').value.trim();
+        const password = document.getElementById('regPassword').value;
 
-    try {
-        const response = await fetch(`${API_URL}/auth/cliente/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, email, password, telefono })
-        });
+        try {
+            const response = await fetch(`${API_URL}/auth/cliente/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, email, password, telefono })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (response.ok) {
-            alert("¡Registro exitoso! Por favor inicia sesión con tu nueva cuenta.");
-            // Cambiar a pestaña de Login
-            tabLogin.click();
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = '';
-        } else {
-            alert(data.error || "Ocurrió un error al registrarse.");
+            if (response.ok) {
+                alert("¡Registro exitoso! Por favor inicia sesión con tu nueva cuenta.");
+                tabLogin.click();
+                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = '';
+            } else {
+                alert(data.error || "Ocurrió un error al registrarse.");
+            }
+        } catch (error) {
+            console.error("Error en registro cliente:", error);
+            alert("Error de conexión al registrar cuenta.");
         }
-    } catch (error) {
-        console.error("Error en registro cliente:", error);
-        alert("Error de conexión al registrar cuenta.");
-    }
-});
+    });
+}
 
 // Abrir el modal de Checkout y Cargar el QR Oficial
 async function abrirCheckoutModal() {
     const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
     checkoutMonto.innerText = `Bs. ${total}`;
     
-    // Cargar el QR oficial desde el endpoint público
     try {
         const response = await fetch(`${API_URL}/admin/qr`);
         const data = await response.json();
@@ -455,85 +523,86 @@ async function abrirCheckoutModal() {
     checkoutModal.style.display = 'flex';
 }
 
-btnCloseCheckoutModal.addEventListener('click', () => {
-    checkoutModal.style.display = 'none';
-});
+if (btnCloseCheckoutModal) {
+    btnCloseCheckoutModal.addEventListener('click', () => {
+        checkoutModal.style.display = 'none';
+    });
+}
 
 // Finalizar Compra (Enviar comprobante y registrar orden)
-checkoutForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+if (checkoutForm) {
+    checkoutForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    if (!comprobanteFileInput.files[0]) {
-        alert("Por favor selecciona la imagen de tu comprobante de pago.");
-        return;
-    }
-
-    const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    const sesionActiva = localStorage.getItem('sesionClienteActiva');
-
-    if (!sesionActiva) {
-        alert("Tu sesión ha expirado. Por favor inicia sesión nuevamente.");
-        checkoutModal.style.display = 'none';
-        authModal.style.display = 'flex';
-        return;
-    }
-
-    try {
-        // Map details of purchase
-        const detalles = carrito.map(item => ({
-            id_variante: item.id, // ID del producto (se resolverá a su variante en la DB)
-            cantidad: item.cantidad,
-            precio_unitario: item.precio
-        }));
-
-        // 1. Registrar la orden en el servidor
-        const responseOrden = await fetch(`${API_URL}/ordenes`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ total, detalles })
-        });
-
-        const dataOrden = await responseOrden.json();
-
-        if (!responseOrden.ok) {
-            alert(dataOrden.error || "Ocurrió un error al registrar tu orden.");
+        if (!comprobanteFileInput.files[0]) {
+            alert("Por favor selecciona la imagen de tu comprobante de pago.");
             return;
         }
 
-        const ordenId = dataOrden.orden.id;
+        const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+        const sesionActiva = localStorage.getItem('sesionClienteActiva');
 
-        // 2. Subir el comprobante de pago QR asociado a la orden creada
-        const formData = new FormData();
-        formData.append('comprobante', comprobanteFileInput.files[0]);
-
-        const responseComprobante = await fetch(`${API_URL}/ordenes/${ordenId}/comprobante`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const dataComprobante = await responseComprobante.json();
-
-        if (responseComprobante.ok) {
-            alert(`¡Pedido registrado exitosamente!\n\nID de Orden: #${ordenId}\nEstado: Pendiente de Verificación.\n\nRevisaremos tu comprobante y aprobaremos tu orden lo antes posible. ¡Gracias por comprar en STORE LAN!`);
-            
-            // Limpiar carrito
-            carrito = [];
-            guardarCarrito();
-            actualizarCarritoDOM();
-
-            // Cerrar modales
+        if (!sesionActiva) {
+            alert("Tu sesión ha expirado. Por favor inicia sesión nuevamente.");
             checkoutModal.style.display = 'none';
-            checkoutForm.reset();
-        } else {
-            alert(dataComprobante.error || "El pedido se guardó, pero la subida de tu comprobante falló. Contáctanos por WhatsApp para enviarlo.");
+            authModal.style.display = 'flex';
+            return;
         }
-    } catch (error) {
-        console.error("Error al finalizar la compra:", error);
-        alert("Error de conexión al procesar tu compra.");
-    }
-});
+
+        try {
+            const detalles = carrito.map(item => ({
+                id_variante: item.id, // ID del producto (se resolverá a su variante en la DB)
+                cantidad: item.cantidad,
+                precio_unitario: item.precio
+            }));
+
+            // 1. Registrar la orden en el servidor
+            const responseOrden = await fetch(`${API_URL}/ordenes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ total, detalles })
+            });
+
+            const dataOrden = await responseOrden.json();
+
+            if (!responseOrden.ok) {
+                alert(dataOrden.error || "Ocurrió un error al registrar tu orden.");
+                return;
+            }
+
+            const ordenId = dataOrden.orden.id;
+
+            // 2. Subir el comprobante de pago QR asociado a la orden creada
+            const formData = new FormData();
+            formData.append('comprobante', comprobanteFileInput.files[0]);
+
+            const responseComprobante = await fetch(`${API_URL}/ordenes/${ordenId}/comprobante`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const dataComprobante = await responseComprobante.json();
+
+            if (responseComprobante.ok) {
+                alert(`¡Pedido registrado exitosamente!\n\nID de Orden: #${ordenId}\nEstado: Pendiente de Verificación.\n\nRevisaremos tu comprobante y aprobaremos tu orden lo antes posible. ¡Gracias por comprar en STORE LAN!`);
+                
+                carrito = [];
+                guardarCarrito();
+                actualizarCarritoDOM();
+
+                checkoutModal.style.display = 'none';
+                checkoutForm.reset();
+            } else {
+                alert(dataComprobante.error || "El pedido se guardó, pero la subida de tu comprobante falló. Contáctanos por WhatsApp para enviarlo.");
+            }
+        } catch (error) {
+            console.error("Error al finalizar la compra:", error);
+            alert("Error de conexión al procesar tu compra.");
+        }
+    });
+}
 
 // --- 5. Lógica del Carrusel Promocional ---
 let currentSlide = 0;
@@ -578,9 +647,11 @@ dots.forEach((dot, idx) => {
 });
 
 // Auto-play cada 5 segundos
-setInterval(() => {
-    showSlide(currentSlide + 1);
-}, 5000);
+if (carouselInner && slides.length > 0) {
+    setInterval(() => {
+        showSlide(currentSlide + 1);
+    }, 5000);
+}
 
 // --- 6. Agregar al Carrito con Verificación de Variantes ---
 window.agregarAlCarritoDirecto = async (id, nombre, precio, foto) => {
@@ -589,11 +660,9 @@ window.agregarAlCarritoDirecto = async (id, nombre, precio, foto) => {
         const variantes = await response.json();
         
         if (response.ok && variantes.length > 0) {
-            // Si el producto cuenta con variantes, obligamos a seleccionarlas
             alert("Esta prenda cuenta con opciones de Talla y Color. Por favor selecciona tu variante preferida en la vista de detalles.");
             verDetallesProducto(id, nombre, "Colección", foto, precio, "Cargando detalles...");
         } else {
-            // Si no tiene variantes, lo añade directamente
             agregarAlCarrito(id, nombre, precio, foto);
         }
     } catch (error) {
@@ -645,7 +714,6 @@ window.verDetallesProducto = async (id, nombre, categoria, foto, precio, descrip
         btnAdd.disabled = false;
     }
 
-    // Configurar click de agregar al carrito clonando el botón para borrar handlers antiguos
     const newBtnAdd = btnAdd.cloneNode(true);
     btnAdd.parentNode.replaceChild(newBtnAdd, btnAdd);
     

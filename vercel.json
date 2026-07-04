@@ -5,6 +5,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "tienda.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "app.js",
       "use": "@vercel/static"
     },

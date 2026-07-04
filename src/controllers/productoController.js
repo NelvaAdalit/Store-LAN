@@ -74,6 +74,8 @@ export const obtenerProductos = async (req, res) => {
                 query = query.order('nombre', { ascending: true });
             } else if (orden === 'nombre_desc') {
                 query = query.order('nombre', { ascending: false });
+            } else if (orden === 'id_desc') {
+                query = query.order('id', { ascending: false });
             }
         } else {
             // Orden predeterminado por ID
