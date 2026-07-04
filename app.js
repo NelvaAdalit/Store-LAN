@@ -240,8 +240,8 @@ btnCheckout.addEventListener('click', async () => {
         return;
     }
 
-    const tokenCliente = localStorage.getItem('tokenCliente');
-    if (!tokenCliente) {
+    const sesionActiva = localStorage.getItem('sesionClienteActiva');
+    if (!sesionActiva) {
         alert("Para realizar compras, por favor inicia sesión o crea una cuenta de cliente.");
         cartSidebar.style.transform = 'translateX(105%)'; // Cierra el carrito
         authModal.style.display = 'flex'; // Abre el modal de login
@@ -314,12 +314,18 @@ if (nombreGuardado) {
 }
 
 // Evento botón Mi Cuenta / Iniciar Sesión
-btnOpenAuth.addEventListener('click', () => {
-    const tokenCliente = localStorage.getItem('tokenCliente');
-    if (tokenCliente) {
+btnOpenAuth.addEventListener('click', async () => {
+    const sesionActiva = localStorage.getItem('sesionClienteActiva');
+    if (sesionActiva) {
         if (confirm("¿Deseas cerrar tu sesión de cliente?")) {
+            try {
+                await fetch(`${API_URL}/auth/logout`, { method: 'POST' });
+            } catch (e) {
+                console.error("Error cerrando sesión:", e);
+            }
             localStorage.removeItem('tokenCliente');
             localStorage.removeItem('nombreCliente');
+            localStorage.removeItem('sesionClienteActiva');
             clientNameNav.innerText = "Iniciar Sesión";
             window.location.reload();
         }
@@ -369,13 +375,13 @@ clientLoginForm.addEventListener('submit', async (e) => {
         if (response.ok) {
             // Autodetección de rol (Admin vs Cliente)
             if (data.rol === 'admin' || data.rol === 'superadmin') {
-                localStorage.setItem('tokenStoreLan', data.token);
+                localStorage.setItem('sesionAdminActiva', 'true');
                 alert("¡Acceso concedido como Administrador! Redireccionando al panel de control...");
                 window.location.href = 'frontend-admin/dashboard.html';
                 return;
             }
 
-            localStorage.setItem('tokenCliente', data.token);
+            localStorage.setItem('sesionClienteActiva', 'true');
             localStorage.setItem('nombreCliente', data.cliente.nombre);
             clientNameNav.innerText = data.cliente.nombre.split(' ')[0];
             authModal.style.display = 'none';
@@ -469,9 +475,9 @@ checkoutForm.addEventListener('submit', async (e) => {
     }
 
     const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    const tokenCliente = localStorage.getItem('tokenCliente');
+    const sesionActiva = localStorage.getItem('sesionClienteActiva');
 
-    if (!tokenCliente) {
+    if (!sesionActiva) {
         alert("Tu sesión ha expirado. Por favor inicia sesión nuevamente.");
         checkoutModal.style.display = 'none';
         authModal.style.display = 'flex';
@@ -490,8 +496,7 @@ checkoutForm.addEventListener('submit', async (e) => {
         const responseOrden = await fetch(`${API_URL}/ordenes`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${tokenCliente}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ total, detalles })
         });
@@ -511,9 +516,6 @@ checkoutForm.addEventListener('submit', async (e) => {
 
         const responseComprobante = await fetch(`${API_URL}/ordenes/${ordenId}/comprobante`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${tokenCliente}`
-            },
             body: formData
         });
 

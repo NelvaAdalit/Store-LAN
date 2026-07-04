@@ -35,7 +35,15 @@ export const login = async (req, res) => {
         // 3. Crear el Token JWT
         const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
-        return res.json({ message: "Login exitoso", token });
+        // Enviar cookie segura
+        res.cookie('tokenStoreLan', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000 // 24 horas
+        });
+
+        return res.json({ message: "Login exitoso", rol: usuario.rol });
     } catch (err) {
         console.error("Excepción en el proceso de login:", err);
         return res.status(500).json({ error: "Error interno del servidor" });
@@ -217,10 +225,16 @@ export const loginCliente = async (req, res) => {
                 { expiresIn: '7d' }
             );
 
+            res.cookie('tokenCliente', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+            });
+
             return res.json({
                 message: "Inicio de sesión exitoso",
                 rol: 'cliente',
-                token,
                 cliente: {
                     id: cliente.id,
                     nombre: cliente.nombre,
@@ -255,10 +269,16 @@ export const loginCliente = async (req, res) => {
                 { expiresIn: '7d' }
             );
 
+            res.cookie('tokenStoreLan', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+            });
+
             return res.json({
                 message: "Inicio de sesión exitoso como Administrador",
                 rol: usuario.rol || 'admin',
-                token,
                 cliente: {
                     id: usuario.id,
                     nombre: "Administrador",
@@ -273,4 +293,18 @@ export const loginCliente = async (req, res) => {
         console.error("Excepción en loginCliente:", err);
         return res.status(500).json({ error: "Error interno del servidor" });
     }
+};
+
+export const logout = async (req, res) => {
+    res.clearCookie('tokenStoreLan', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    });
+    res.clearCookie('tokenCliente', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    });
+    return res.json({ message: "Sesión cerrada correctamente" });
 };

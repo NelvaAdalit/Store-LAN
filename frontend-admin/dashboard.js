@@ -1,16 +1,22 @@
 // 1. Verificación de Seguridad Inmediata
-const token = localStorage.getItem('tokenStoreLan');
+const sesionActiva = localStorage.getItem('sesionAdminActiva');
 
-if (!token) {
-    // Si no hay token, expulsamos al usuario al login
+if (!sesionActiva) {
+    // Si no hay sesión activa, expulsamos al usuario al login
     window.location.href = 'index.html';
 }
 
 const API_URL = CONFIG.API_URL;
 
 // 2. Lógica para Cerrar Sesión
-document.getElementById('btnLogout').addEventListener('click', () => {
-    localStorage.removeItem('tokenStoreLan'); // Borramos la llave
+document.getElementById('btnLogout').addEventListener('click', async () => {
+    try {
+        await fetch(`${API_URL}/auth/logout`, { method: 'POST' });
+    } catch (e) {
+        console.error("Error al cerrar sesión en servidor:", e);
+    }
+    localStorage.removeItem('tokenStoreLan');
+    localStorage.removeItem('sesionAdminActiva');
     window.location.href = '../index.html'; // Lo mandamos al inicio oficial (tienda)
 });
 
@@ -55,8 +61,7 @@ document.getElementById('btnCrearCategoria').addEventListener('click', async () 
         const response = await fetch(`${API_URL}/admin/categorias`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ nombre: nombre.trim() })
         });
@@ -188,9 +193,6 @@ productForm.addEventListener('submit', async (e) => {
     try {
         const response = await fetch(url, {
             method: method,
-            headers: {
-                'Authorization': `Bearer ${token}` // Token JWT para pasar el middleware de Admin
-            },
             body: formData
         });
 
@@ -217,10 +219,7 @@ window.eliminarProducto = async (id) => {
 
     try {
         const response = await fetch(`${API_URL}/productos/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            method: 'DELETE'
         });
 
         const data = await response.json();
@@ -297,11 +296,7 @@ async function cargarOrdenes() {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #a0a0a0;">Cargando órdenes...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_URL}/ordenes`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await fetch(`${API_URL}/ordenes`);
         const result = await response.json();
         const ordenes = Array.isArray(result) ? result : (result.data || []);
 
@@ -372,8 +367,7 @@ window.cambiarEstadoOrden = async (id, estado) => {
         const response = await fetch(`${API_URL}/ordenes/${id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ estado })
         });
@@ -398,11 +392,7 @@ async function cargarContactos() {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #a0a0a0;">Cargando mensajes...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_URL}/contacto`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await fetch(`${API_URL}/contacto`);
         const result = await response.json();
         const contactos = Array.isArray(result) ? result : (result.data || []);
 
@@ -474,9 +464,6 @@ qrForm.addEventListener('submit', async (e) => {
     try {
         const response = await fetch(`${API_URL}/admin/qr`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
             body: formData
         });
 
@@ -562,8 +549,7 @@ variantForm.addEventListener('submit', async (e) => {
         const response = await fetch(`${API_URL}/productos/${productId}/variantes`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ talla, color, stock })
         });
@@ -589,10 +575,7 @@ window.eliminarVariante = async (variantId, productId) => {
 
     try {
         const response = await fetch(`${API_URL}/productos/variantes/${variantId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            method: 'DELETE'
         });
 
         const result = await response.json();

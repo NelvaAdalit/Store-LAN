@@ -1,11 +1,10 @@
 import jwt from 'jsonwebtoken';
 
 export const verificarAdmin = (req, res, next) => {
-    // Obtenemos el token del encabezado "Authorization"
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Formato esperado: "Bearer TOKEN"
+    // Intentamos obtener el token desde la cookie de admin, o del header Authorization
+    const token = req.cookies?.tokenStoreLan || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
 
-    if (!token) return res.status(403).json({ error: "Acceso denegado: Token requerido" });
+    if (!token) return res.status(403).json({ error: "Acceso denegado: Inicia sesión como administrador." });
 
     try {
         const decodificado = jwt.verify(token, process.env.JWT_SECRET);
@@ -18,16 +17,15 @@ export const verificarAdmin = (req, res, next) => {
         req.usuario = decodificado; // Guardamos info del usuario para usarla después
         next(); // ¡Todo bien! Pasamos a la siguiente función
     } catch (err) {
-        res.status(401).json({ error: "Token inválido o expirado" });
+        res.status(401).json({ error: "Token de administrador inválido o expirado" });
     }
 };
 
 export const verificarCliente = (req, res, next) => {
-    // Obtenemos el token del encabezado "Authorization"
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Formato esperado: "Bearer TOKEN"
+    // Intentamos obtener el token desde la cookie de cliente, o del header Authorization
+    const token = req.cookies?.tokenCliente || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
 
-    if (!token) return res.status(403).json({ error: "Acceso denegado: Token requerido" });
+    if (!token) return res.status(403).json({ error: "Acceso denegado: Se requiere cuenta de cliente" });
 
     try {
         const decodificado = jwt.verify(token, process.env.JWT_SECRET);
@@ -40,6 +38,6 @@ export const verificarCliente = (req, res, next) => {
         req.cliente = decodificado; // Guardamos info del cliente
         next();
     } catch (err) {
-        res.status(401).json({ error: "Token inválido o expirado" });
+        res.status(401).json({ error: "Token de cliente inválido o expirado" });
     }
 };

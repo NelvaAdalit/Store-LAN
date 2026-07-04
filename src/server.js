@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { supabase } from './config/supabaseClient.js';
 import productoRoutes from './routes/productoRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -9,7 +10,30 @@ import ordenRoutes from './routes/ordenRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
-app.use(cors());
+
+const originsPermitidos = [
+    'https://store-lan.vercel.app',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (originsPermitidos.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por CORS por política de seguridad'));
+        }
+    },
+    credentials: true
+}));
+
+app.use(cookieParser());
 app.use(express.json());
 app.use('/api/productos', productoRoutes);
 app.use('/api/auth', authRoutes);
