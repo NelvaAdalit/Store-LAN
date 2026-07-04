@@ -315,13 +315,26 @@ async function cargarOrdenes() {
                 const fecha = new Date(orden.creado_en).toLocaleString('es-ES');
                 
                 // Mostrar info del cliente
-                const clienteInfo = orden.clientes ? `
+                let clienteInfo = orden.clientes ? `
                     <div style="font-size: 0.85rem; line-height: 1.3; text-align: left;">
                         <strong>${orden.clientes.nombre}</strong><br>
                         <span style="color: #a0a0a0;">${orden.clientes.email || 'Sin correo'}</span><br>
                         <span style="color: #e6c27a;">${orden.clientes.telefono || 'Sin telf.'}</span>
                     </div>
                 ` : '<span style="color: #a0a0a0;">Desconocido</span>';
+
+                if (orden.detalles_envio) {
+                    clienteInfo += `
+                        <div style="margin-top: 8px; font-size: 0.75rem; line-height: 1.4; text-align: left; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(212,175,55,0.25); max-width: 250px;">
+                            <strong style="color: #e6c27a;">Dirección de Envío:</strong><br>
+                            ${orden.detalles_envio.nombre} ${orden.detalles_envio.apellidos}<br>
+                            ${orden.detalles_envio.direccion} ${orden.detalles_envio.apto ? '(' + orden.detalles_envio.apto + ')' : ''}<br>
+                            ${orden.detalles_envio.ciudad} - ${orden.detalles_envio.departamento}<br>
+                            Telf: ${orden.detalles_envio.telefono}<br>
+                            ${orden.detalles_envio.nota ? `<span style="color: #ffb703; font-style: italic; display: block; margin-top: 3px;">Nota: "${orden.detalles_envio.nota}"</span>` : ''}
+                        </div>
+                    `;
+                }
 
                 // Mostrar comprobante
                 let comprobanteHtml = '<span style="color: #a0a0a0;">Sin subir</span>';

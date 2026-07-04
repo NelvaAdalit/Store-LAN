@@ -897,7 +897,8 @@ async function renderizarPaginaCheckout() {
                 },
                 body: JSON.stringify({ 
                     total, 
-                    detalles
+                    detalles,
+                    detalles_envio: envioInfo
                 })
             });
 

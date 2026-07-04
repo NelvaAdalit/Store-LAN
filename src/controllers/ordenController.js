@@ -6,7 +6,7 @@ import { optimizarImagen } from '../middleware/uploadMiddleware.js';
  */
 export const crearOrden = async (req, res) => {
     try {
-        const { total, detalles } = req.body;
+        const { total, detalles, detalles_envio } = req.body;
         const id_cliente = req.cliente ? req.cliente.id : null; // Vincula la orden al cliente autenticado
 
         if (!total) {
@@ -27,6 +27,17 @@ export const crearOrden = async (req, res) => {
         if (error) {
             console.error("Error transaccional al crear orden:", error);
             return res.status(400).json({ error: error.message || "Error al procesar la compra. Verifica el stock disponible." });
+        }
+
+        // Guardar detalles de envío en columna detalles_envio (tipo jsonb)
+        if (detalles_envio) {
+            const { error: updateError } = await supabase
+                .from('ordenes')
+                .update({ detalles_envio })
+                .eq('id', ordenId);
+            if (updateError) {
+                console.error("Error al actualizar detalles de envío en orden:", updateError);
+            }
         }
 
         // Recuperamos los datos de la orden recién creada
