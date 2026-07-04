@@ -9,6 +9,14 @@
       "use": "@vercel/static"
     },
     {
+      "src": "carrito.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "finalizarcompra.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "app.js",
       "use": "@vercel/static"
     },

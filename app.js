@@ -30,7 +30,13 @@ const contactResponse = document.getElementById('contactResponse');
 
 // --- 1. Inicialización y Carga de Datos ---
 document.addEventListener('DOMContentLoaded', () => {
-    if (catalogGridHome) {
+    if (document.getElementById('carritoMainContainer')) {
+        // Estamos en carrito.html
+        renderizarPaginaCarrito();
+    } else if (document.getElementById('checkoutFormPage')) {
+        // Estamos en finalizarcompra.html
+        renderizarPaginaCheckout();
+    } else if (catalogGridHome) {
         // Estamos en index.html (Home) - Cargar Últimos Ingresos (limit=5, orden=id_desc)
         obtenerUltimosIngresos();
     } else if (catalogGrid) {
@@ -135,20 +141,20 @@ async function obtenerCatalogo() {
     }
 }
 
-// Cargar Últimos Ingresos (solo en index.html - Home)
+// Cargar Últimos Ingresos (solo en index.html - Home y carrito.html vacío)
 async function obtenerUltimosIngresos() {
-    if (!catalogGridHome) return;
-    catalogGridHome.innerHTML = `<div class="loading-spinner" style="text-align: center; color: #a0a0a0; padding: 50px; width: 100%; grid-column: 1/-1;">Cargando novedades...</div>`;
+    const targetGrid = catalogGridHome || document.getElementById('catalogGridHome');
+    if (!targetGrid) return;
+    targetGrid.innerHTML = `<div class="loading-spinner" style="text-align: center; color: #a0a0a0; padding: 50px; width: 100%; grid-column: 1/-1;">Cargando novedades...</div>`;
 
     try {
-        // Cargar últimos 5 productos creados
         const response = await fetch(`${API_URL}/productos?limit=5&orden=id_desc`);
         const result = await response.json();
 
         const productos = Array.isArray(result) ? result : (result.data || []);
 
         if (response.ok && productos.length > 0) {
-            catalogGridHome.innerHTML = '';
+            targetGrid.innerHTML = '';
             
             productos.forEach(producto => {
                 const categoriaNombre = producto.categorias?.nombre || producto.categorias || 'Colección';
@@ -162,7 +168,7 @@ async function obtenerUltimosIngresos() {
                     ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.8rem; margin-right: 8px;">Bs. ${producto.precio}</span>Bs. ${producto.precio_oferta}`
                     : `Bs. ${producto.precio}`;
 
-                catalogGridHome.innerHTML += `
+                targetGrid.innerHTML += `
                     <div class="novedades-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${precioCompra}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}', ${producto.precio})">
                         <div class="novedades-img-container">
                             ${badgeHtml}
@@ -179,11 +185,11 @@ async function obtenerUltimosIngresos() {
                 `;
             });
         } else {
-            catalogGridHome.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #a0a0a0;">No hay novedades disponibles en este momento.</div>`;
+            targetGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #a0a0a0;">No hay novedades disponibles en este momento.</div>`;
         }
     } catch (error) {
         console.error("Error cargando novedades:", error);
-        catalogGridHome.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #ff4d4d;">Error de comunicación con el servidor backend.</div>`;
+        targetGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #ff4d4d;">Error de comunicación con el servidor backend.</div>`;
     }
 }
 
@@ -204,14 +210,19 @@ if (btnSearch && searchQueryInput) {
 
 // --- 2. Lógica del Carrito ---
 
-// Abrir/Cerrar Carrito Sidebar
-btnOpenCart.addEventListener('click', () => {
-    cartSidebar.style.transform = 'translateX(0)';
-});
+// Redireccionar al hacer clic en el botón del carrito
+if (btnOpenCart) {
+    btnOpenCart.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'carrito.html';
+    });
+}
 
-btnCloseCart.addEventListener('click', () => {
-    cartSidebar.style.transform = 'translateX(105%)';
-});
+if (btnCloseCart) {
+    btnCloseCart.addEventListener('click', () => {
+        cartSidebar.style.transform = 'translateX(105%)';
+    });
+}
 
 // Agregar item
 window.agregarAlCarrito = (id, nombre, precio, foto, cantidad = 1, idVariante = null) => {
@@ -232,7 +243,15 @@ window.agregarAlCarrito = (id, nombre, precio, foto, cantidad = 1, idVariante = 
 
     guardarCarrito();
     actualizarCarritoDOM();
-    cartSidebar.style.transform = 'translateX(0)';
+    
+    // Si estamos en la página del carrito, refrescamos la vista completa
+    if (document.getElementById('carritoMainContainer')) {
+        renderizarPaginaCarrito();
+    } else {
+        if (confirm("¡Prenda agregada a la bolsa de compras! ¿Deseas ir al carrito para finalizar tu compra?")) {
+            window.location.href = 'carrito.html';
+        }
+    }
 };
 
 // Cambiar cantidades
@@ -255,6 +274,17 @@ window.quitarDelCarrito = (id) => {
     actualizarCarritoDOM();
 };
 
+// Métodos locales para recargar carrito.html
+window.cambiarCantidadLocal = (id, cambio) => {
+    cambiarCantidad(id, cambio);
+    renderizarPaginaCarrito();
+};
+
+window.quitarDelCarritoLocal = (id) => {
+    quitarDelCarrito(id);
+    renderizarPaginaCarrito();
+};
+
 // Guardar en LocalStorage
 function guardarCarrito() {
     localStorage.setItem('carritoStoreLan', JSON.stringify(carrito));
@@ -263,7 +293,9 @@ function guardarCarrito() {
 // Actualizar vista del carrito
 function actualizarCarritoDOM() {
     const cantidadTotal = carrito.reduce((acc, item) => acc + item.cantidad, 0);
-    cartCount.innerText = cantidadTotal;
+    if (cartCount) cartCount.innerText = cantidadTotal;
+
+    if (!cartItemsContainer) return; // Si no hay sidebar en la página actual
 
     if (carrito.length === 0) {
         cartItemsContainer.innerHTML = `
@@ -275,7 +307,7 @@ function actualizarCarritoDOM() {
                 <p style="font-size: 0.85rem; color: #d0d0d0; font-family: 'Poppins', sans-serif; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px; display: inline-block; margin: 0;">¡Tu carrito está actualmente vacío!</p>
             </div>
         `;
-        cartTotalSum.innerText = 'Bs. 0';
+        if (cartTotalSum) cartTotalSum.innerText = 'Bs. 0';
         return;
     }
 
@@ -303,26 +335,19 @@ function actualizarCarritoDOM() {
         `;
     });
 
-    cartTotalSum.innerText = `Bs. ${total}`;
+    if (cartTotalSum) cartTotalSum.innerText = `Bs. ${total}`;
 }
 
-// Confirmar pedido (Crear Orden)
-btnCheckout.addEventListener('click', async () => {
-    if (carrito.length === 0) {
-        alert("Agrega productos al carrito antes de confirmar el pedido.");
-        return;
-    }
-
-    const sesionActiva = localStorage.getItem('sesionClienteActiva');
-    if (!sesionActiva) {
-        alert("Para realizar compras, por favor inicia sesión o crea una cuenta de cliente.");
-        cartSidebar.style.transform = 'translateX(105%)'; // Cierra el carrito
-        authModal.style.display = 'flex'; // Abre el modal de login
-        return;
-    }
-
-    abrirCheckoutModal();
-});
+// Confirmar pedido desde sidebar (si aplica)
+if (btnCheckout) {
+    btnCheckout.addEventListener('click', async () => {
+        if (carrito.length === 0) {
+            alert("Agrega productos al carrito antes de confirmar el pedido.");
+            return;
+        }
+        window.location.href = 'carrito.html';
+    });
+}
 
 // --- 3. Formulario de Contacto ---
 if (clientContactForm) {
@@ -374,13 +399,6 @@ const tabRegister = document.getElementById('tabRegister');
 const clientLoginForm = document.getElementById('clientLoginForm');
 const clientRegisterForm = document.getElementById('clientRegisterForm');
 
-const checkoutModal = document.getElementById('checkoutModal');
-const btnCloseCheckoutModal = document.getElementById('btnCloseCheckoutModal');
-const checkoutQrImg = document.getElementById('checkoutQrImg');
-const checkoutMonto = document.getElementById('checkoutMonto');
-const checkoutForm = document.getElementById('checkoutForm');
-const comprobanteFileInput = document.getElementById('comprobanteFile');
-
 // Cargar Nombre de Cliente al iniciar
 const nombreGuardado = localStorage.getItem('nombreCliente');
 if (nombreGuardado && clientNameNav) {
@@ -416,7 +434,7 @@ if (btnCloseAuthModal) {
     });
 }
 
-// Pestañas
+// Pestañas de Autenticación
 if (tabLogin && tabRegister) {
     tabLogin.addEventListener('click', () => {
         tabLogin.classList.add('active');
@@ -467,8 +485,10 @@ if (clientLoginForm) {
                 authModal.style.display = 'none';
                 alert(`¡Bienvenido de nuevo, ${data.cliente.nombre}!`);
 
-                if (carrito.length > 0) {
-                    abrirCheckoutModal();
+                // Si estamos en la página del carrito, refrescamos e iniciamos checkout
+                if (document.getElementById('carritoMainContainer')) {
+                    renderizarPaginaCarrito();
+                    irACheckout();
                 }
             } else {
                 alert(data.error || "Error al iniciar sesión.");
@@ -509,109 +529,6 @@ if (clientRegisterForm) {
         } catch (error) {
             console.error("Error en registro cliente:", error);
             alert("Error de conexión al registrar cuenta.");
-        }
-    });
-}
-
-// Abrir el modal de Checkout y Cargar el QR Oficial
-async function abrirCheckoutModal() {
-    const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    checkoutMonto.innerText = `Bs. ${total}`;
-    
-    try {
-        const response = await fetch(`${API_URL}/admin/qr`);
-        const data = await response.json();
-        
-        if (response.ok && data.qr_url) {
-            checkoutQrImg.src = data.qr_url;
-        } else {
-            checkoutQrImg.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
-        }
-    } catch (error) {
-        console.error("Error cargando QR para checkout:", error);
-        checkoutQrImg.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
-    }
-
-    checkoutModal.style.display = 'flex';
-}
-
-if (btnCloseCheckoutModal) {
-    btnCloseCheckoutModal.addEventListener('click', () => {
-        checkoutModal.style.display = 'none';
-    });
-}
-
-// Finalizar Compra (Enviar comprobante y registrar orden)
-if (checkoutForm) {
-    checkoutForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!comprobanteFileInput.files[0]) {
-            alert("Por favor selecciona la imagen de tu comprobante de pago.");
-            return;
-        }
-
-        const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-        const sesionActiva = localStorage.getItem('sesionClienteActiva');
-
-        if (!sesionActiva) {
-            alert("Tu sesión ha expirado. Por favor inicia sesión nuevamente.");
-            checkoutModal.style.display = 'none';
-            authModal.style.display = 'flex';
-            return;
-        }
-
-        try {
-            const detalles = carrito.map(item => ({
-                id_variante: item.id, // ID del producto (se resolverá a su variante en la DB)
-                cantidad: item.cantidad,
-                precio_unitario: item.precio
-            }));
-
-            // 1. Registrar la orden en el servidor
-            const responseOrden = await fetch(`${API_URL}/ordenes`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ total, detalles })
-            });
-
-            const dataOrden = await responseOrden.json();
-
-            if (!responseOrden.ok) {
-                alert(dataOrden.error || "Ocurrió un error al registrar tu orden.");
-                return;
-            }
-
-            const ordenId = dataOrden.orden.id;
-
-            // 2. Subir el comprobante de pago QR asociado a la orden creada
-            const formData = new FormData();
-            formData.append('comprobante', comprobanteFileInput.files[0]);
-
-            const responseComprobante = await fetch(`${API_URL}/ordenes/${ordenId}/comprobante`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const dataComprobante = await responseComprobante.json();
-
-            if (responseComprobante.ok) {
-                alert(`¡Pedido registrado exitosamente!\n\nID de Orden: #${ordenId}\nEstado: Pendiente de Verificación.\n\nRevisaremos tu comprobante y aprobaremos tu orden lo antes posible. ¡Gracias por comprar en STORE LAN!`);
-                
-                carrito = [];
-                guardarCarrito();
-                actualizarCarritoDOM();
-
-                checkoutModal.style.display = 'none';
-                checkoutForm.reset();
-            } else {
-                alert(dataComprobante.error || "El pedido se guardó, pero la subida de tu comprobante falló. Contáctanos por WhatsApp para enviarlo.");
-            }
-        } catch (error) {
-            console.error("Error al finalizar la compra:", error);
-            alert("Error de conexión al procesar tu compra.");
         }
     });
 }
@@ -766,5 +683,261 @@ window.verDetallesProducto = async (id, nombre, categoria, foto, precio, descrip
 if (btnCloseDetailModal) {
     btnCloseDetailModal.addEventListener('click', () => {
         productDetailModal.style.display = 'none';
+    });
+}
+
+// --- 8. Lógica Específica de la Página de Carrito (carrito.html) ---
+function renderizarPaginaCarrito() {
+    const mainContainer = document.getElementById('carritoMainContainer');
+    if (!mainContainer) return;
+
+    if (carrito.length === 0) {
+        // Carrito vacío: Carita triste + Sugerencias
+        mainContainer.innerHTML = `
+            <div style="max-width: 1200px; margin: 40px auto; padding: 0 30px; box-sizing: border-box;">
+                <div class="empty-cart-container glass-card" style="text-align: center; padding: 50px 20px; color: #a0a0a0; max-width: 600px; margin: 0 auto 50px auto;">
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h3>
+                    <div style="font-size: 4rem; color: #e6c27a; margin-bottom: 25px; opacity: 0.8;">
+                        <i class="far fa-sad-tear"></i>
+                    </div>
+                    <p style="font-size: 0.95rem; color: #d0d0d0; font-family: 'Poppins', sans-serif; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 15px; display: inline-block; margin: 0;">¡Tu carrito está actualmente vacío!</p>
+                </div>
+
+                <div class="catalog-header" style="text-align: center; margin-top: 60px;">
+                    <h2 style="display: inline-block; border: none; padding: 0; font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; color: #e6c27a; margin-bottom: 20px;">Nuevo en la tienda</h2>
+                    <div style="width: 60px; height: 2px; background: #e6c27a; margin: -10px auto 35px auto;"></div>
+                </div>
+                <div class="novedades-grid" id="catalogGridHome">
+                    <!-- Se carga dinámicamente -->
+                </div>
+            </div>
+        `;
+        obtenerUltimosIngresos();
+    } else {
+        // Carrito con productos: Tabla + Totales lateral
+        let total = 0;
+        let tableRowsHtml = '';
+
+        carrito.forEach(item => {
+            const itemTotal = item.precio * item.cantidad;
+            total += itemTotal;
+
+            tableRowsHtml += `
+                <tr>
+                    <td>
+                        <div class="cart-product-cell">
+                            <img src="${item.foto}" alt="${item.nombre}">
+                            <div class="cart-product-details">
+                                <h4 class="cart-product-title">${item.nombre}</h4>
+                                <p class="cart-product-desc">Precio unitario: Bs. ${item.precio}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color: #e6c27a; font-weight: bold; font-size: 0.95rem;">Bs. ${itemTotal}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                            <div class="qty-control">
+                                <button onclick="cambiarCantidadLocal(${item.id}, -1)">-</button>
+                                <span>${item.cantidad}</span>
+                                <button onclick="cambiarCantidadLocal(${item.id}, 1)">+</button>
+                            </div>
+                            <button onclick="quitarDelCarritoLocal(${item.id})" class="btn-delete-cart" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        mainContainer.innerHTML = `
+            <div class="checkout-layout">
+                <!-- Columna Izquierda: Tabla -->
+                <div class="glass-card" style="padding: 30px; width: 100%; box-sizing: border-box;">
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h3>
+                    
+                    <div style="overflow-x: auto; width: 100%;">
+                        <table class="cart-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Total</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 10px; font-size: 0.85rem; color: #a0a0a0;">
+                        <span>Moda Circular</span>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Totales -->
+                <div class="glass-card" style="padding: 30px; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px; margin-bottom: 5px;">Totales del Carrito</h3>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #a0a0a0;">
+                        <span>Free shipping:</span>
+                        <span style="color: #25d366; font-weight: bold;">GRATIS</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: white; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
+                        <span>Total estimado:</span>
+                        <span style="color: #e6c27a;">Bs. ${total}</span>
+                    </div>
+
+                    <button onclick="irACheckout()" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 14px; font-weight: bold; font-size: 0.95rem; margin-top: 20px;">Finalizar compra</button>
+                    
+                    <div style="text-align: right; font-size: 0.8rem; color: #a0a0a0; margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <span>Todos los derechos reservados</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+window.irACheckout = () => {
+    const sesionActiva = localStorage.getItem('sesionClienteActiva');
+    if (!sesionActiva) {
+        alert("Para realizar compras, por favor inicia sesión o crea una cuenta de cliente.");
+        authModal.style.display = 'flex';
+        return;
+    }
+    window.location.href = 'finalizarcompra.html';
+};
+
+// --- 9. Lógica de Finalizar Compra (finalizarcompra.html) ---
+async function renderizarPaginaCheckout() {
+    const formPage = document.getElementById('checkoutFormPage');
+    if (!formPage) return;
+
+    if (carrito.length === 0) {
+        alert("Tu bolsa de compras está vacía. Redireccionando a la tienda...");
+        window.location.href = 'tienda.html';
+        return;
+    }
+
+    const nombreGuardado = localStorage.getItem('nombreCliente');
+    if (nombreGuardado) {
+        document.getElementById('checkNombre').value = nombreGuardado;
+    }
+
+    const summaryContainer = document.getElementById('checkoutSummaryItems');
+    const totalSumLabel = document.getElementById('checkoutTotalSumPage');
+    
+    summaryContainer.innerHTML = '';
+    let total = 0;
+
+    carrito.forEach(item => {
+        const itemTotal = item.precio * item.cantidad;
+        total += itemTotal;
+
+        summaryContainer.innerHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <img src="${item.foto}" alt="${item.nombre}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(212,175,55,0.2);">
+                    <div>
+                        <span style="font-weight: 500; color: white;">${item.nombre}</span>
+                        <span style="display: block; color: #a0a0a0; font-size: 0.75rem;">Cant: ${item.cantidad}</span>
+                    </div>
+                </div>
+                <span style="color: #e6c27a; font-weight: bold;">Bs. ${itemTotal}</span>
+            </div>
+        `;
+    });
+
+    totalSumLabel.innerText = `Bs. ${total}`;
+
+    const checkoutQrImgPage = document.getElementById('checkoutQrImgPage');
+    try {
+        const response = await fetch(`${API_URL}/admin/qr`);
+        const data = await response.json();
+        
+        if (response.ok && data.qr_url) {
+            checkoutQrImgPage.src = data.qr_url;
+        } else {
+            checkoutQrImgPage.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
+        }
+    } catch (error) {
+        console.error("Error cargando QR para checkout:", error);
+        checkoutQrImgPage.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
+    }
+
+    formPage.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('comprobanteFilePage');
+        if (!fileInput.files[0]) {
+            alert("Por favor selecciona la imagen de tu comprobante de pago.");
+            return;
+        }
+
+        const nombre = document.getElementById('checkNombre').value.trim();
+        const email = document.getElementById('checkEmail').value.trim();
+        const telefono = document.getElementById('checkTelf').value.trim();
+        const direccion = document.getElementById('checkDireccion').value.trim();
+        const ciudad = document.getElementById('checkCiudad').value.trim();
+
+        try {
+            const detalles = carrito.map(item => ({
+                id_variante: item.id,
+                cantidad: item.cantidad,
+                precio_unitario: item.precio
+            }));
+
+            // 1. Crear Orden
+            const responseOrden = await fetch(`${API_URL}/ordenes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    total, 
+                    detalles,
+                    envio_nombre: nombre,
+                    envio_email: email,
+                    envio_telefono: telefono,
+                    envio_direccion: `${direccion}, ${ciudad}`
+                })
+            });
+
+            const dataOrden = await responseOrden.json();
+
+            if (!responseOrden.ok) {
+                alert(dataOrden.error || "Ocurrió un error al registrar tu orden.");
+                return;
+            }
+
+            const ordenId = dataOrden.orden.id;
+
+            // 2. Subir Comprobante
+            const formData = new FormData();
+            formData.append('comprobante', fileInput.files[0]);
+
+            const responseComprobante = await fetch(`${API_URL}/ordenes/${ordenId}/comprobante`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const dataComprobante = await responseComprobante.json();
+
+            if (responseComprobante.ok) {
+                alert(`¡Pedido registrado exitosamente!\n\nID de Orden: #${ordenId}\n\nRevisaremos tu comprobante y aprobaremos tu orden lo antes posible. ¡Gracias por comprar en STORE LAN!`);
+                
+                carrito = [];
+                guardarCarrito();
+                actualizarCarritoDOM();
+
+                window.location.href = 'index.html';
+            } else {
+                alert(dataComprobante.error || "El pedido se guardó, pero la subida de tu comprobante falló. Contáctanos por WhatsApp para enviarlo.");
+            }
+        } catch (error) {
+            console.error("Error procesando compra:", error);
+            alert("Error de conexión al procesar tu compra.");
+        }
     });
 }
