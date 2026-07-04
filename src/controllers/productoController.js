@@ -404,28 +404,46 @@ export const eliminarVariante = async (req, res) => {
 export const actualizarStockVariante = async (req, res) => {
     try {
         const { id } = req.params;
-        const { stock } = req.body;
+        const { stock, talla, color } = req.body;
 
-        if (stock === undefined || isNaN(parseInt(stock)) || parseInt(stock) < 0) {
-            return res.status(400).json({ error: "El stock debe ser un número entero no negativo." });
+        const updateData = {
+            updated_at: new Date()
+        };
+
+        if (stock !== undefined) {
+            if (isNaN(parseInt(stock)) || parseInt(stock) < 0) {
+                return res.status(400).json({ error: "El stock debe ser un número entero no negativo." });
+            }
+            updateData.stock = parseInt(stock);
+        }
+
+        if (talla !== undefined) {
+            if (!talla.trim()) {
+                return res.status(400).json({ error: "La talla no puede estar vacía." });
+            }
+            updateData.talla = talla.trim();
+        }
+
+        if (color !== undefined) {
+            if (!color.trim()) {
+                return res.status(400).json({ error: "El color no puede estar vacío." });
+            }
+            updateData.color = color.trim();
         }
 
         const { data, error } = await supabase
             .from('variantes')
-            .update({ 
-                stock: parseInt(stock),
-                updated_at: new Date()
-            })
+            .update(updateData)
             .eq('id', parseInt(id))
             .select('*')
             .single();
 
         if (error) {
-            console.error("Error al actualizar stock de variante:", error);
-            return res.status(500).json({ error: "Error al actualizar el stock de la variante" });
+            console.error("Error al actualizar variante:", error);
+            return res.status(500).json({ error: "Error al actualizar la variante" });
         }
 
-        res.json({ message: "Stock de variante actualizado con éxito", variante: data });
+        res.json({ message: "Variante actualizada con éxito", variante: data });
     } catch (error) {
         console.error("Excepción en actualizarStockVariante:", error);
         res.status(500).json({ error: "Error interno en el servidor" });

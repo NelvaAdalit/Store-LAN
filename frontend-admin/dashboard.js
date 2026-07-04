@@ -554,7 +554,7 @@ async function cargarVariantes(productId) {
                         <td style="padding: 10px; color: #d0d0d0;">${v.color}</td>
                         <td style="padding: 10px; color: #e6c27a; font-weight: bold;">${v.stock} u.</td>
                         <td style="padding: 10px; text-align: center;">
-                            <button onclick="editarStockVariante(${v.id}, ${v.stock}, ${productId})" title="Editar Stock" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 15px; font-size: 1rem;">
+                            <button onclick="editarVariante(${v.id}, '${v.talla.replace(/'/g, "\\'")}', '${v.color.replace(/'/g, "\\'")}', ${v.stock}, ${productId})" title="Editar Talla, Color y Stock" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 15px; font-size: 1rem;">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button onclick="eliminarVariante(${v.id}, ${productId})" title="Eliminar Variante" style="background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-size: 1rem;">
@@ -632,8 +632,22 @@ window.eliminarVariante = async (variantId, productId) => {
     }
 };
 
-window.editarStockVariante = async (variantId, stockActual, productId) => {
-    const nuevoStock = prompt(`Ingresa el nuevo stock para esta variante (actual: ${stockActual} u.):`, stockActual);
+window.editarVariante = async (variantId, tallaActual, colorActual, stockActual, productId) => {
+    const nuevaTalla = prompt("Ingresa la nueva Talla para esta variante:", tallaActual);
+    if (nuevaTalla === null) return;
+    if (!nuevaTalla.trim()) {
+        alert("La talla no puede estar vacía.");
+        return;
+    }
+
+    const nuevoColor = prompt("Ingresa el nuevo Color para esta variante:", colorActual);
+    if (nuevoColor === null) return;
+    if (!nuevoColor.trim()) {
+        alert("El color no puede estar vacío.");
+        return;
+    }
+
+    const nuevoStock = prompt("Ingresa el nuevo stock para esta variante:", stockActual);
     if (nuevoStock === null) return;
 
     const stockNum = parseInt(nuevoStock);
@@ -648,7 +662,11 @@ window.editarStockVariante = async (variantId, stockActual, productId) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ stock: stockNum })
+            body: JSON.stringify({ 
+                talla: nuevaTalla.trim(),
+                color: nuevoColor.trim(),
+                stock: stockNum 
+            })
         });
 
         const result = await response.json();
@@ -656,11 +674,11 @@ window.editarStockVariante = async (variantId, stockActual, productId) => {
         if (response.ok) {
             cargarVariantes(productId);
         } else {
-            alert(result.error || "No se pudo actualizar el stock.");
+            alert(result.error || "No se pudo actualizar la variante.");
         }
     } catch (error) {
-        console.error("Error al editar stock de variante:", error);
-        alert("Error de conexión al intentar actualizar stock.");
+        console.error("Error al actualizar variante:", error);
+        alert("Error de conexión al intentar actualizar la variante.");
     }
 };
 
