@@ -443,13 +443,7 @@ async function abrirCheckoutModal() {
         const data = await response.json();
         
         if (response.ok && data.qr_url) {
-            // Verificar si el QR existe de verdad
-            const verify = await fetch(data.qr_url, { method: 'HEAD' });
-            if (verify.ok) {
-                checkoutQrImg.src = data.qr_url;
-            } else {
-                checkoutQrImg.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
-            }
+            checkoutQrImg.src = data.qr_url;
         } else {
             checkoutQrImg.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
         }

@@ -432,17 +432,11 @@ async function cargarQrOficial() {
         const data = await response.json();
 
         if (response.ok && data.qr_url) {
-            // Hacemos una petición rápida para verificar que el archivo existe en Storage
-            const verify = await fetch(data.qr_url, { method: 'HEAD' });
-            if (verify.ok) {
-                currentQrImg.src = `${data.qr_url}?t=${Date.now()}`;
-                currentQrImg.style.display = 'block';
-                noQrText.style.display = 'none';
-                return;
-            }
+            currentQrImg.src = `${data.qr_url}?t=${Date.now()}`;
+            currentQrImg.style.display = 'block';
+            noQrText.style.display = 'none';
+            return;
         }
-        currentQrImg.style.display = 'none';
-        noQrText.style.display = 'block';
     } catch (error) {
         console.error("Error al cargar QR oficial:", error);
         currentQrImg.style.display = 'none';
