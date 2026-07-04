@@ -1080,6 +1080,13 @@ async function cargarPaginaDetalleProducto() {
         document.getElementById('detailDescShort').innerText = producto.descripcion || 'Sin descripción disponible.';
         document.getElementById('metaCategory').innerText = categoriaNombre;
 
+        // Configurar botón flotante de WhatsApp dinámico para consultar esta prenda
+        const whatsappFloatBtn = document.getElementById('whatsappFloatBtn');
+        if (whatsappFloatBtn) {
+            const mensajeConsulta = `¡Hola Store LAN! Estoy interesada en este producto: ${producto.nombre}. ¿Me podrían dar más detalles sobre la disponibilidad y el envío? Gracias.\n\n${window.location.href}`;
+            whatsappFloatBtn.href = `https://wa.me/59164725885?text=${encodeURIComponent(mensajeConsulta)}`;
+        }
+
         // Mostrar oferta si aplica
         const tagBadge = document.getElementById('detailTagBadge');
         const oldPriceLabel = document.getElementById('detailOldPrice');
