@@ -7,7 +7,8 @@ import {
     obtenerVariantes,
     crearVariante,
     eliminarVariante,
-    actualizarStockVariante 
+    actualizarStockVariante,
+    obtenerProductoPorId
 } from '../controllers/productoController.js';
 import { verificarAdmin } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/uploadMiddleware.js';
@@ -16,6 +17,7 @@ const router = express.Router();
 
 // Rutas de catálogo
 router.get('/', obtenerProductos);
+router.get('/:id', obtenerProductoPorId);
 
 // Crear producto con foto optimizada (Solo Admin)
 router.post('/', verificarAdmin, upload.single('imagen'), crearProducto);

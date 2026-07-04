@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (document.getElementById('reciboId')) {
         // Estamos en pedidorecibido.html
         renderizarPaginaRecibo();
+    } else if (document.getElementById('detailBreadcrumbs')) {
+        // Estamos en producto.html
+        cargarPaginaDetalleProducto();
     } else if (catalogGridHome) {
         // Estamos en index.html (Home) - Cargar Últimos Ingresos (limit=5, orden=id_desc)
         obtenerUltimosIngresos();
@@ -607,87 +610,9 @@ window.agregarAlCarritoDirecto = async (id, nombre, precio, foto) => {
 const productDetailModal = document.getElementById('productDetailModal');
 const btnCloseDetailModal = document.getElementById('btnCloseDetailModal');
 
-window.verDetallesProducto = async (id, nombre, categoria, foto, precio, descripcion, precioOriginal = null) => {
-    document.getElementById('detailProductImg').src = foto;
-    document.getElementById('detailProductCat').innerText = categoria;
-    document.getElementById('detailProductName').innerText = nombre;
-    document.getElementById('detailProductDesc').innerText = descripcion;
-    
-    if (precioOriginal && parseFloat(precioOriginal) !== parseFloat(precio)) {
-        document.getElementById('detailProductPrice').innerHTML = `
-            <span style="text-decoration: line-through; color: #a0a0a0; font-size: 1.1rem; margin-right: 12px;">Bs. ${precioOriginal}</span>
-            Bs. ${precio}
-        `;
-    } else {
-        document.getElementById('detailProductPrice').innerText = `Bs. ${precio}`;
-    }
-    
-    const select = document.getElementById('detailVariantSelect');
-    select.innerHTML = '<option value="">Cargando opciones...</option>';
-    
-    const btnAdd = document.getElementById('btnDetailAddCart');
-    btnAdd.disabled = true;
-
-    try {
-        const response = await fetch(`${API_URL}/productos/${id}/variantes`);
-        const variantes = await response.json();
-        
-        if (response.ok && variantes.length > 0) {
-            select.innerHTML = '';
-            variantes.forEach(v => {
-                const stockText = v.stock > 0 ? `Stock: ${v.stock} u.` : 'Agotado';
-                const disabledText = v.stock === 0 ? 'disabled' : '';
-                select.innerHTML += `
-                    <option value="${v.id}" data-stock="${v.stock}" data-talla="${v.talla}" data-color="${v.color}" ${disabledText}>
-                        Talla: ${v.talla} - Color: ${v.color} (${stockText})
-                    </option>
-                `;
-            });
-            btnAdd.disabled = false;
-        } else {
-            select.innerHTML = `<option value="default" data-stock="100" data-talla="Única" data-color="Estándar">Estándar (Stock Disponible)</option>`;
-            btnAdd.disabled = false;
-        }
-    } catch (error) {
-        console.error("Error al cargar variantes en detalle:", error);
-        select.innerHTML = `<option value="default" data-stock="100" data-talla="Única" data-color="Estándar">Estándar (Stock Disponible)</option>`;
-        btnAdd.disabled = false;
-    }
-
-    const newBtnAdd = btnAdd.cloneNode(true);
-    btnAdd.parentNode.replaceChild(newBtnAdd, btnAdd);
-    
-    newBtnAdd.addEventListener('click', () => {
-        const selectedOption = select.options[select.selectedIndex];
-        if (!selectedOption) {
-            alert("Por favor selecciona una variante disponible.");
-            return;
-        }
-        
-        const variantId = selectedOption.value;
-        const talla = selectedOption.getAttribute('data-talla');
-        const color = selectedOption.getAttribute('data-color');
-        const stock = parseInt(selectedOption.getAttribute('data-stock'));
-        
-        if (stock <= 0) {
-            alert("Esta variante se encuentra agotada.");
-            return;
-        }
-        
-        const variantName = `${nombre} (${talla} / ${color})`;
-        agregarAlCarrito(id, variantName, precio, foto, 1, variantId !== 'default' ? parseInt(variantId) : null);
-        
-        productDetailModal.style.display = 'none';
-    });
-
-    productDetailModal.style.display = 'flex';
+window.verDetallesProducto = (id) => {
+    window.location.href = `producto.html?id=${id}`;
 };
-
-if (btnCloseDetailModal) {
-    btnCloseDetailModal.addEventListener('click', () => {
-        productDetailModal.style.display = 'none';
-    });
-}
 
 // --- 8. Lógica Específica de la Página de Carrito (carrito.html) ---
 function renderizarPaginaCarrito() {
@@ -1073,5 +998,229 @@ async function renderizarPaginaRecibo() {
                 btnUploadWebComprobante.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Subir Comprobante a la Web';
             }
         });
+    }
+}
+
+// --- 11. Carga de Detalle de Prenda (producto.html) ---
+async function cargarPaginaDetalleProducto() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) {
+        alert("No se especificó una prenda válida. Redireccionando a la tienda...");
+        window.location.href = 'tienda.html';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/productos/${id}`);
+        if (!response.ok) {
+            alert("No se pudo obtener la información de la prenda.");
+            window.location.href = 'tienda.html';
+            return;
+        }
+
+        const producto = await response.json();
+        const categoriaNombre = producto.categorias?.nombre || 'Colección';
+        const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
+
+        const esOferta = producto.precio_oferta && parseFloat(producto.precio_oferta) > 0;
+        const precioCompra = esOferta ? parseFloat(producto.precio_oferta) : parseFloat(producto.precio);
+
+        // Llenar datos básicos
+        document.getElementById('breadProductName').innerText = producto.nombre;
+        document.getElementById('detailImg').src = fotoUrl;
+        document.getElementById('detailCatLabel').innerText = categoriaNombre;
+        document.getElementById('detailName').innerText = producto.nombre;
+        document.getElementById('detailDescShort').innerText = producto.descripcion || 'Sin descripción disponible.';
+        document.getElementById('metaCategory').innerText = categoriaNombre;
+
+        // Mostrar oferta si aplica
+        const tagBadge = document.getElementById('detailTagBadge');
+        const oldPriceLabel = document.getElementById('detailOldPrice');
+        const priceLabel = document.getElementById('detailPrice');
+
+        if (esOferta) {
+            tagBadge.style.display = 'block';
+            tagBadge.innerText = 'Oferta';
+            oldPriceLabel.style.display = 'inline';
+            oldPriceLabel.innerText = `Bs. ${producto.precio}`;
+            priceLabel.innerText = `Bs. ${producto.precio_oferta}`;
+        } else {
+            tagBadge.style.display = 'none';
+            oldPriceLabel.style.display = 'none';
+            priceLabel.innerText = `Bs. ${producto.precio}`;
+        }
+
+        // Carga de variantes
+        const select = document.getElementById('detailVariant');
+        select.innerHTML = '<option value="">Cargando opciones...</option>';
+        const btnAdd = document.getElementById('btnAddToCartDetail');
+        btnAdd.disabled = true;
+
+        try {
+            const resVar = await fetch(`${API_URL}/productos/${id}/variantes`);
+            const variantes = await resVar.json();
+            
+            if (resVar.ok && variantes.length > 0) {
+                select.innerHTML = '';
+                variantes.forEach(v => {
+                    const stockText = v.stock > 0 ? `Stock: ${v.stock} u.` : 'Agotado';
+                    const disabledText = v.stock === 0 ? 'disabled' : '';
+                    select.innerHTML += `
+                        <option value="${v.id}" data-stock="${v.stock}" data-talla="${v.talla}" data-color="${v.color}" ${disabledText}>
+                            Talla: ${v.talla} - Color: ${v.color} (${stockText})
+                        </option>
+                    `;
+                });
+                btnAdd.disabled = false;
+            } else {
+                select.innerHTML = `<option value="default" data-stock="100" data-talla="Única" data-color="Estándar">Estándar (Stock Disponible)</option>`;
+                btnAdd.disabled = false;
+            }
+        } catch (errVar) {
+            console.error("Error al cargar variantes:", errVar);
+            select.innerHTML = `<option value="default" data-stock="100" data-talla="Única" data-color="Estándar">Estándar (Stock Disponible)</option>`;
+            btnAdd.disabled = false;
+        }
+
+        // Lógica del selector de cantidad
+        const qtyInput = document.getElementById('qtyInput');
+        const btnMinus = document.getElementById('btnQtyMinus');
+        const btnPlus = document.getElementById('btnQtyPlus');
+
+        btnMinus.onclick = () => {
+            let val = parseInt(qtyInput.value) || 1;
+            if (val > 1) {
+                qtyInput.value = val - 1;
+            }
+        };
+
+        btnPlus.onclick = () => {
+            const selectedOption = select.options[select.selectedIndex];
+            const maxStock = selectedOption ? parseInt(selectedOption.getAttribute('data-stock')) : 100;
+            let val = parseInt(qtyInput.value) || 1;
+            if (val < maxStock) {
+                qtyInput.value = val + 1;
+            }
+        };
+
+        // Lógica del botón de añadir
+        btnAdd.onclick = () => {
+            const selectedOption = select.options[select.selectedIndex];
+            if (!selectedOption) {
+                alert("Por favor selecciona una variante disponible.");
+                return;
+            }
+            
+            const variantId = selectedOption.value;
+            const talla = selectedOption.getAttribute('data-talla');
+            const color = selectedOption.getAttribute('data-color');
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+            const cantidad = parseInt(qtyInput.value) || 1;
+            
+            if (stock <= 0) {
+                alert("Esta variante se encuentra agotada.");
+                return;
+            }
+            
+            const variantName = `${producto.nombre} (${talla} / ${color})`;
+            agregarAlCarrito(producto.id, variantName, precioCompra, fotoUrl, cantidad, variantId !== 'default' ? parseInt(variantId) : null);
+            
+            alert(`¡Se agregaron ${cantidad} unidades de ${producto.nombre} (${talla} / ${color}) a tu bolsa!`);
+            window.location.href = 'carrito.html';
+        };
+
+        // Pestañas (Descripción y Valoraciones)
+        const tabBtnDesc = document.getElementById('tabBtnDesc');
+        const tabBtnVal = document.getElementById('tabBtnVal');
+        const tabContentArea = document.getElementById('tabContentArea');
+
+        // Contenido por defecto
+        tabContentArea.innerHTML = `
+            <h3 style="color: #e6c27a; margin-bottom: 15px; font-weight: 500;">Descripción del Producto</h3>
+            <p>${producto.descripcion || 'Sin descripción detallada disponible.'}</p>
+            <ul style="margin-top: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <li>Material: Seda / Lino / Algodón Premium</li>
+                <li>Diseño exclusivo y de alta costura</li>
+                <li>Limpieza en seco o lavado suave a mano recomendados</li>
+            </ul>
+        `;
+
+        tabBtnDesc.onclick = () => {
+            tabBtnDesc.classList.add('active');
+            tabBtnVal.classList.remove('active');
+            tabContentArea.innerHTML = `
+                <h3 style="color: #e6c27a; margin-bottom: 15px; font-weight: 500;">Descripción del Producto</h3>
+                <p>${producto.descripcion || 'Sin descripción detallada disponible.'}</p>
+                <ul style="margin-top: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                    <li>Material: Seda / Lino / Algodón Premium</li>
+                    <li>Diseño exclusivo y de alta costura</li>
+                    <li>Limpieza en seco o lavado suave a mano recomendados</li>
+                </ul>
+            `;
+        };
+
+        tabBtnVal.onclick = () => {
+            tabBtnVal.classList.add('active');
+            tabBtnDesc.classList.remove('active');
+            tabContentArea.innerHTML = `
+                <h3 style="color: #e6c27a; margin-bottom: 15px; font-weight: 500;">Valoraciones de Clientes</h3>
+                <p style="color: #a0a0a0; font-style: italic;">No hay valoraciones para este producto todavía. ¡Sé el primero en valorarlo al realizar tu compra!</p>
+            `;
+        };
+
+        // Cargar productos relacionados
+        cargarProductosRelacionados(producto.id, producto.id_categoria);
+
+    } catch (error) {
+        console.error("Error al cargar la página de detalle:", error);
+    }
+}
+
+async function cargarProductosRelacionados(productId, categoryId) {
+    const grid = document.getElementById('relatedProductsGrid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="color: #a0a0a0;">Cargando relacionados...</div>';
+
+    try {
+        const response = await fetch(`${API_URL}/productos?categoria=${categoryId}&limit=5`);
+        const result = await response.json();
+        const productos = Array.isArray(result) ? result : (result.data || []);
+
+        // Filtrar el producto actual
+        const relacionados = productos.filter(p => p.id !== productId).slice(0, 4);
+
+        if (response.ok && relacionados.length > 0) {
+            grid.innerHTML = '';
+            relacionados.forEach(prod => {
+                const catNombre = prod.categorias?.nombre || 'Colección';
+                const fotoUrl = (prod.imagenes && prod.imagenes.length > 0) ? prod.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
+                const esOferta = prod.precio_oferta && parseFloat(prod.precio_oferta) > 0;
+                const precioHtml = esOferta
+                    ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.85rem; margin-right: 8px;">Bs. ${prod.precio}</span>Bs. ${prod.precio_oferta}`
+                    : `Bs. ${prod.precio}`;
+
+                grid.innerHTML += `
+                    <div class="product-card glass-card" onclick="verDetallesProducto(${prod.id})">
+                        <div class="img-container">
+                            ${esOferta ? '<span class="badge-oferta">Oferta</span>' : ''}
+                            <img src="${fotoUrl}" alt="${prod.nombre}" loading="lazy">
+                        </div>
+                        <div class="product-info">
+                            <span class="product-cat">${catNombre}</span>
+                            <h3 class="product-title">${prod.nombre}</h3>
+                            <div class="product-price-row" style="margin-top: 10px;">
+                                <span class="product-price">${precioHtml}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            grid.innerHTML = '<p style="color: #a0a0a0; grid-column: 1/-1;">No se encontraron productos relacionados.</p>';
+        }
+    } catch (e) {
+        console.error("Error al cargar relacionados:", e);
+        grid.innerHTML = '<p style="color: #a0a0a0; grid-column: 1/-1;">No se pudieron cargar relacionados.</p>';
     }
 }

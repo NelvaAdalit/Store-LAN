@@ -103,6 +103,27 @@ export const obtenerProductos = async (req, res) => {
     }
 };
 
+export const obtenerProductoPorId = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data, error } = await supabase
+            .from('productos')
+            .select('*, categorias(nombre), imagenes(url)')
+            .eq('id', parseInt(id))
+            .single();
+
+        if (error) {
+            console.error("Error al obtener producto por ID:", error);
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+
+        return res.json(data);
+    } catch (error) {
+        console.error("Excepción en obtenerProductoPorId:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+};
+
 export const crearProducto = async (req, res) => {
     try {
         const { nombre, descripcion, precio, id_categoria, precio_oferta } = req.body;

@@ -21,6 +21,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "producto.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "app.js",
       "use": "@vercel/static"
     },
