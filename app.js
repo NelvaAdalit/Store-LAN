@@ -1013,7 +1013,7 @@ async function renderizarPaginaRecibo() {
 
     // 5. Configurar botón de WhatsApp
     const btnSendWhatsapp = document.getElementById('btnSendWhatsapp');
-    const tlfTienda = "59164715885"; // Celular de Store-LAN
+    const tlfTienda = "59164725885"; // Celular de Store-LAN
     
     const mensajeTexto = `Hola STORE LAN, acabo de realizar un pedido:\n\n*Pedido Nro:* #${ultimoPedido.id}\n*Total:* Bs. ${ultimoPedido.total}\n\n*Detalles del Pedido:*\n${listadoParaMensaje}\n*Datos de Envío:*\n- Nombre: ${checkInfo.nombre} ${checkInfo.apellidos}\n- Celular: ${checkInfo.telefono}\n- Dirección: ${checkInfo.direccion}, ${checkInfo.apto ? checkInfo.apto : ''} (${checkInfo.ciudad} - ${checkInfo.departamento})\n\nAdjunto la captura del comprobante de transferencia a continuación:`;
     
