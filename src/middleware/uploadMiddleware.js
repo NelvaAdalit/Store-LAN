@@ -18,8 +18,13 @@ export const upload = multer({
  * @returns {Promise<Buffer>} - Búfer de la imagen optimizada en formato WebP.
  */
 export const optimizarImagen = async (fileBuffer) => {
-    return await sharp(fileBuffer)
-        .resize({ width: 800, withoutEnlargement: true }) // Máximo 800px de ancho
-        .webp({ quality: 80 }) // Calidad 80% en formato WebP
-        .toBuffer();
+    try {
+        return await sharp(fileBuffer)
+            .resize({ width: 800, withoutEnlargement: true }) // Máximo 800px de ancho
+            .webp({ quality: 80 }) // Calidad 80% en formato WebP
+            .toBuffer();
+    } catch (error) {
+        console.error("Error optimizando imagen con sharp:", error);
+        throw error;
+    }
 };

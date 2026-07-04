@@ -136,14 +136,21 @@ export const crearProducto = async (req, res) => {
             return res.status(400).json({ error: "La imagen del producto es requerida" });
         }
 
-        // 1. Optimizar la imagen a WebP con Sharp
-        const webpBuffer = await optimizarImagen(req.file.buffer);
+        // 1. Intentar optimizar la imagen con fallback
+        let bufferSubida;
+        let nombreArchivo;
+        try {
+            bufferSubida = await optimizarImagen(req.file.buffer);
+            nombreArchivo = `${Date.now()}-${nombre.toLowerCase().replace(/[^a-z0-9]/g, '-')}.webp`;
+        } catch (err) {
+            console.warn("Fallo la optimización con Sharp, usando original:", err);
+            bufferSubida = req.file.buffer;
+            const extOriginal = req.file.originalname ? req.file.originalname.split('.').pop() : 'png';
+            nombreArchivo = `${Date.now()}-${nombre.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${extOriginal}`;
+        }
 
-        // 2. Generar un nombre único para el archivo
-        const nombreArchivo = `${Date.now()}-${nombre.toLowerCase().replace(/[^a-z0-9]/g, '-')}.webp`;
-
-        // 3. Subir la imagen optimizada a Supabase Storage (bucket público: 'ropa')
-        const { error: uploadError } = await subirImagenSupabase('ropa', nombreArchivo, webpBuffer, true);
+        // 3. Subir la imagen a Supabase Storage (bucket público: 'ropa')
+        const { error: uploadError } = await subirImagenSupabase('ropa', nombreArchivo, bufferSubida, true);
 
         if (uploadError) {
             console.error("Error subiendo la foto a Supabase Storage:", uploadError);
@@ -215,14 +222,21 @@ export const actualizarProducto = async (req, res) => {
 
         // Si se carga una nueva imagen
         if (req.file) {
-            // 1. Optimizar imagen a WebP con Sharp
-            const webpBuffer = await optimizarImagen(req.file.buffer);
-
-            // 2. Generar nombre de archivo único
-            const nombreArchivo = `${Date.now()}-${nombre ? nombre.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'update'}.webp`;
+            // 1. Intentar optimizar imagen con fallback
+            let bufferSubida;
+            let nombreArchivo;
+            try {
+                bufferSubida = await optimizarImagen(req.file.buffer);
+                nombreArchivo = `${Date.now()}-${nombre ? nombre.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'update'}.webp`;
+            } catch (err) {
+                console.warn("Fallo la optimización con Sharp al actualizar, usando original:", err);
+                bufferSubida = req.file.buffer;
+                const extOriginal = req.file.originalname ? req.file.originalname.split('.').pop() : 'png';
+                nombreArchivo = `${Date.now()}-${nombre ? nombre.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'update'}.${extOriginal}`;
+            }
 
             // 3. Subir a Supabase Storage (bucket público: 'ropa')
-            const { error: uploadError } = await subirImagenSupabase('ropa', nombreArchivo, webpBuffer, true);
+            const { error: uploadError } = await subirImagenSupabase('ropa', nombreArchivo, bufferSubida, true);
 
             if (uploadError) {
                 console.error("Error al subir nueva imagen:", uploadError);

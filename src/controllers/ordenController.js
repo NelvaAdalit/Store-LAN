@@ -73,8 +73,21 @@ export const subirComprobantePago = async (req, res) => {
             return res.status(400).json({ error: "La captura de pantalla del comprobante es requerida." });
         }
 
-        // 1. Optimizar la imagen a WebP
-        const webpBuffer = await optimizarImagen(req.file.buffer);
+        // 1. Intentar optimizar la imagen a WebP con fallback si falla (por ejemplo, si Sharp no carga native binaries)
+        let bufferSubida;
+        let mimeTypeSubida = 'image/webp';
+        let nombreArchivo;
+
+        try {
+            bufferSubida = await optimizarImagen(req.file.buffer);
+            nombreArchivo = `${Date.now()}-orden-${id}.webp`;
+        } catch (optimizeError) {
+            console.warn("Fallo la optimización de comprobante con Sharp. Usando original como fallback:", optimizeError);
+            bufferSubida = req.file.buffer;
+            mimeTypeSubida = req.file.mimetype || 'image/png';
+            const extensionOriginal = req.file.originalname ? req.file.originalname.split('.').pop() : 'png';
+            nombreArchivo = `${Date.now()}-orden-${id}.${extensionOriginal}`;
+        }
 
         // 2.5 Asegurar que el bucket 'comprobantes' exista
         try {
@@ -94,8 +107,8 @@ export const subirComprobantePago = async (req, res) => {
         // 3. Subir archivo a Supabase Storage (bucket 'comprobantes')
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('comprobantes')
-            .upload(nombreArchivo, webpBuffer, {
-                contentType: 'image/webp',
+            .upload(nombreArchivo, bufferSubida, {
+                contentType: mimeTypeSubida,
                 cacheControl: '3600',
                 upsert: false
             });
@@ -142,7 +155,7 @@ export const subirComprobantePago = async (req, res) => {
         });
     } catch (error) {
         console.error("Excepción en subirComprobantePago:", error);
-        return res.status(500).json({ error: "Error interno del servidor." });
+        return res.status(500).json({ error: `Error interno del servidor: ${error.message}` });
     }
 };
 
