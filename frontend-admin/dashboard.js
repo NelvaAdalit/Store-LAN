@@ -519,6 +519,9 @@ async function cargarVariantes(productId) {
                         <td style="padding: 10px; color: #d0d0d0;">${v.color}</td>
                         <td style="padding: 10px; color: #e6c27a; font-weight: bold;">${v.stock} u.</td>
                         <td style="padding: 10px; text-align: center;">
+                            <button onclick="editarStockVariante(${v.id}, ${v.stock}, ${productId})" title="Editar Stock" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 15px; font-size: 1rem;">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <button onclick="eliminarVariante(${v.id}, ${productId})" title="Eliminar Variante" style="background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-size: 1rem;">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -591,6 +594,38 @@ window.eliminarVariante = async (variantId, productId) => {
     } catch (error) {
         console.error("Error al eliminar variante:", error);
         alert("Error de conexión al intentar eliminar.");
+    }
+};
+
+window.editarStockVariante = async (variantId, stockActual, productId) => {
+    const nuevoStock = prompt(`Ingresa el nuevo stock para esta variante (actual: ${stockActual} u.):`, stockActual);
+    if (nuevoStock === null) return;
+
+    const stockNum = parseInt(nuevoStock);
+    if (isNaN(stockNum) || stockNum < 0) {
+        alert("Por favor ingresa un número de stock válido (entero no negativo).");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/productos/variantes/${variantId}/stock`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ stock: stockNum })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            cargarVariantes(productId);
+        } else {
+            alert(result.error || "No se pudo actualizar el stock.");
+        }
+    } catch (error) {
+        console.error("Error al editar stock de variante:", error);
+        alert("Error de conexión al intentar actualizar stock.");
     }
 };
 

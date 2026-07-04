@@ -6,7 +6,8 @@ import {
     eliminarProducto,
     obtenerVariantes,
     crearVariante,
-    eliminarVariante 
+    eliminarVariante,
+    actualizarStockVariante 
 } from '../controllers/productoController.js';
 import { verificarAdmin } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/uploadMiddleware.js';
@@ -29,6 +30,7 @@ router.delete('/:id', verificarAdmin, eliminarProducto);
 router.get('/:id/variantes', obtenerVariantes);
 router.post('/:id/variantes', verificarAdmin, crearVariante);
 router.delete('/variantes/:id', verificarAdmin, eliminarVariante);
+router.put('/variantes/:id/stock', verificarAdmin, actualizarStockVariante);
 
 // Esta ruta requiere privilegios de administrador
 router.post('/prueba-admin', verificarAdmin, (req, res) => {
