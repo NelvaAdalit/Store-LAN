@@ -338,15 +338,18 @@ async function cargarOrdenes() {
 
                 // Mostrar comprobante
                 let comprobanteHtml = '';
+                const cliName = orden.detalles_envio ? orden.detalles_envio.nombre : (orden.clientes ? orden.clientes.nombre : '');
+                const cliTelf = orden.detalles_envio ? orden.detalles_envio.telefono : (orden.clientes ? orden.clientes.telefono : '');
+
                 if (orden.comprobante_url) {
                     if (orden.comprobante_url === 'Enviado a WhatsApp') {
-                        comprobanteHtml = `<span style="color: #25d366; font-weight: bold; font-size: 0.85rem;"><i class="fab fa-whatsapp"></i> Enviado a WhatsApp</span>`;
+                        const tlfDest = cliTelf.replace(/\D/g, '');
+                        const tlfFinal = tlfDest.startsWith('591') ? tlfDest : `591${tlfDest}`;
+                        comprobanteHtml = `<a href="https://wa.me/${tlfFinal}" target="_blank" title="Ir al chat del cliente" style="color: #25d366; font-weight: bold; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"><i class="fab fa-whatsapp"></i> Enviado a WhatsApp</a>`;
                     } else {
                         comprobanteHtml = `<a href="${orden.comprobante_url}" target="_blank" title="Ver Comprobante completo" style="display: inline-block;"><img src="${orden.comprobante_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.3);"></a>`;
                     }
                 } else {
-                    const cliName = orden.detalles_envio ? orden.detalles_envio.nombre : (orden.clientes ? orden.clientes.nombre : '');
-                    const cliTelf = orden.detalles_envio ? orden.detalles_envio.telefono : (orden.clientes ? orden.clientes.telefono : '');
                     comprobanteHtml = `
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
                             <span style="color: #ff4d4d; font-size: 0.8rem; font-weight: 500;">Sin subir</span>
