@@ -266,7 +266,15 @@ function actualizarCarritoDOM() {
     cartCount.innerText = cantidadTotal;
 
     if (carrito.length === 0) {
-        cartItemsContainer.innerHTML = `<p class="empty-cart-text">Tu bolsa de compras está vacía.</p>`;
+        cartItemsContainer.innerHTML = `
+            <div class="empty-cart-container" style="text-align: center; padding: 40px 10px; color: #a0a0a0; width: 100%;">
+                <h4 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h4>
+                <div style="font-size: 3.5rem; color: #e6c27a; margin-bottom: 20px; opacity: 0.8;">
+                    <i class="far fa-sad-tear"></i>
+                </div>
+                <p style="font-size: 0.85rem; color: #d0d0d0; font-family: 'Poppins', sans-serif; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px; display: inline-block; margin: 0;">¡Tu carrito está actualmente vacío!</p>
+            </div>
+        `;
         cartTotalSum.innerText = 'Bs. 0';
         return;
     }
