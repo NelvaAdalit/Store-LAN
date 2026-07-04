@@ -315,22 +315,30 @@ async function cargarOrdenes() {
                 const fecha = new Date(orden.creado_en).toLocaleString('es-ES');
                 
                 // Mostrar info del cliente
+                let clientTelClean = orden.clientes && orden.clientes.telefono ? orden.clientes.telefono.replace(/\D/g, '') : '';
+                let clientTelFinal = clientTelClean.startsWith('591') ? clientTelClean : `591${clientTelClean}`;
+                
                 let clienteInfo = orden.clientes ? `
                     <div style="font-size: 0.85rem; line-height: 1.3; text-align: left;">
                         <strong>${orden.clientes.nombre}</strong><br>
                         <span style="color: #a0a0a0;">${orden.clientes.email || 'Sin correo'}</span><br>
-                        <span style="color: #e6c27a;">${orden.clientes.telefono || 'Sin telf.'}</span>
+                        <span style="color: #e6c27a;">
+                            ${orden.clientes.telefono || 'Sin telf.'} 
+                            ${orden.clientes.telefono ? `<a href="https://wa.me/${clientTelFinal}" target="_blank" title="Chatear con el cliente" style="color: #25d366; margin-left: 5px; font-size: 0.95rem; text-decoration: none;"><i class="fab fa-whatsapp"></i> Chat</a>` : ''}
+                        </span>
                     </div>
                 ` : '<span style="color: #a0a0a0;">Desconocido</span>';
 
                 if (orden.detalles_envio) {
+                    const tEnv = orden.detalles_envio.telefono.replace(/\D/g, '');
+                    const tEnvFinal = tEnv.startsWith('591') ? tEnv : `591${tEnv}`;
                     clienteInfo += `
                         <div style="margin-top: 8px; font-size: 0.75rem; line-height: 1.4; text-align: left; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(212,175,55,0.25); max-width: 250px;">
                             <strong style="color: #e6c27a;">Dirección de Envío:</strong><br>
                             ${orden.detalles_envio.nombre} ${orden.detalles_envio.apellidos}<br>
                             ${orden.detalles_envio.direccion} ${orden.detalles_envio.apto ? '(' + orden.detalles_envio.apto + ')' : ''}<br>
                             ${orden.detalles_envio.ciudad} - ${orden.detalles_envio.departamento}<br>
-                            Telf: ${orden.detalles_envio.telefono}<br>
+                            Telf: ${orden.detalles_envio.telefono} <a href="https://wa.me/${tEnvFinal}" target="_blank" title="Chatear con el cliente" style="color: #25d366; margin-left: 5px; font-size: 0.9rem; text-decoration: none;"><i class="fab fa-whatsapp"></i> Chat</a><br>
                             ${orden.detalles_envio.nota ? `<span style="color: #ffb703; font-style: italic; display: block; margin-top: 3px;">Nota: "${orden.detalles_envio.nota}"</span>` : ''}
                         </div>
                     `;
@@ -369,12 +377,17 @@ async function cargarOrdenes() {
                 let accionesHtml = '';
                 if (orden.estado === 'Pendiente') {
                     accionesHtml = `
-                        <button onclick="cambiarEstadoOrden(${orden.id}, 'Aprobado')" class="btn-gold" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-block; margin-right: 5px;"><i class="fas fa-check"></i> Aprobar</button>
-                        <button onclick="cambiarEstadoOrden(${orden.id}, 'Cancelado')" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-block; background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; cursor: pointer;"><i class="fas fa-times"></i> Cancelar</button>
+                        <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch;">
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="cambiarEstadoOrden(${orden.id}, 'Aprobado')" class="btn-gold" style="padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; flex: 1;"><i class="fas fa-check"></i> Aprobar</button>
+                                <button onclick="cambiarEstadoOrden(${orden.id}, 'Cancelado')" style="padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; cursor: pointer; flex: 1;"><i class="fas fa-times"></i> Cancelar</button>
+                            </div>
+                            <button onclick="notificarEnvioBus(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #25d366; border: none; color: white; cursor: pointer;"><i class="fab fa-whatsapp"></i> Notificar Bus</button>
+                        </div>
                     `;
                 } else if (orden.estado === 'Aprobado') {
                     accionesHtml = `
-                        <button onclick="notificarEnvioBus(${orden.id}, '${orden.detalles_envio ? orden.detalles_envio.nombre.replace(/'/g, "\\'") : ''}', '${orden.detalles_envio ? orden.detalles_envio.telefono.replace(/'/g, "\\'") : ''}')" class="btn-gold" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; background: #25d366; border: none; color: white;"><i class="fab fa-whatsapp"></i> Notificar Bus</button>
+                        <button onclick="notificarEnvioBus(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; background: #25d366; border: none; color: white; cursor: pointer;"><i class="fab fa-whatsapp"></i> Notificar Bus</button>
                     `;
                 } else {
                     accionesHtml = `<span style="color: #a0a0a0;">Cerrada</span>`;
