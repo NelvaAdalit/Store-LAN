@@ -6,7 +6,7 @@
     
     <!-- SEO Meta Tags -->
     <title>Finalizar Compra - STORE LAN</title>
-    <meta name="description" content="Completa tu pedido y sube tu comprobante de pago en STORE LAN.">
+    <meta name="description" content="Completa tu pedido y obtén los datos para el pago en STORE LAN.">
     
     <!-- Google Fonts for Premium Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,94 +48,167 @@
     <!-- Contenedor de Checkout (Finalizar Compra) -->
     <main class="store-catalog" style="margin-top: 50px;">
         <div class="catalog-header" style="text-align: center;">
-            <h2 style="display: inline-block; border: none; padding: 0; font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; color: #e6c27a; margin-bottom: 30px;">Finalizar Compra</h2>
+            <h2 style="display: inline-block; border: none; padding: 0; font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; color: #e6c27a; margin-bottom: 30px;">Finalizar compra</h2>
             <div style="width: 80px; height: 2px; background: #e6c27a; margin: -20px auto 35px auto;"></div>
         </div>
 
         <form id="checkoutFormPage" class="checkout-layout">
             <!-- Columna Izquierda: Datos de Envío -->
-            <div class="checkout-billing glass-card">
-                <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Información de Envío</h3>
-                
-                <div class="input-group">
-                    <label for="checkNombre">Nombre Completo</label>
-                    <input type="text" id="checkNombre" required placeholder="Ej. Nelva Adalid" style="width: 100%;">
-                </div>
-
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <div class="input-group" style="flex: 1 1 200px;">
-                        <label for="checkEmail">Correo Electrónico</label>
+            <div class="checkout-billing glass-card" style="display: flex; flex-direction: column; gap: 25px;">
+                <!-- 1. Información de contacto -->
+                <div>
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Información de contacto</h3>
+                    <div class="input-group">
+                        <label for="checkEmail">Dirección de correo electrónico</label>
                         <input type="email" id="checkEmail" required placeholder="correo@example.com" style="width: 100%;">
                     </div>
-                    <div class="input-group" style="flex: 1 1 200px;">
-                        <label for="checkTelf">Celular / Teléfono</label>
-                        <input type="text" id="checkTelf" required placeholder="Ej. 70000000" style="width: 100%;">
+                    <p id="guestNotice" style="font-size: 0.8rem; color: #a0a0a0; margin-top: 5px; margin-bottom: 0; font-style: italic;">
+                        En este momento estás realizando la compra como cliente autenticado.
+                    </p>
+                </div>
+                
+                <!-- 2. Dirección de envío -->
+                <div>
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Dirección de envío</h3>
+                    
+                    <div class="input-group">
+                        <label for="checkPais">País / Región</label>
+                        <select id="checkPais" required style="width: 100%;" disabled>
+                            <option value="Bolivia" selected>Bolivia</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%;">
+                        <div class="input-group" style="flex: 1 1 200px;">
+                            <label for="checkNombre">Nombre</label>
+                            <input type="text" id="checkNombre" required placeholder="Tu nombre" style="width: 100%;">
+                        </div>
+                        <div class="input-group" style="flex: 1 1 200px;">
+                            <label for="checkApellidos">Apellidos</label>
+                            <input type="text" id="checkApellidos" required placeholder="Tus apellidos" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="checkDireccion">Dirección</label>
+                        <input type="text" id="checkDireccion" required placeholder="Calle, número de casa, etc." style="width: 100%;">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="checkApto">Apartamento, habitación, escalera, etc. (opcional)</label>
+                        <input type="text" id="checkApto" placeholder="Apto, suite, bloque, etc." style="width: 100%;">
+                    </div>
+
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%;">
+                        <div class="input-group" style="flex: 1 1 200px;">
+                            <label for="checkCiudad">Ciudad</label>
+                            <input type="text" id="checkCiudad" required placeholder="Ej. Sucre" style="width: 100%;">
+                        </div>
+                        <div class="input-group" style="flex: 1 1 200px;">
+                            <label for="checkDepartamento">Departamento</label>
+                            <select id="checkDepartamento" required style="width: 100%;">
+                                <option value="Chuquisaca" selected>Chuquisaca</option>
+                                <option value="La Paz">La Paz</option>
+                                <option value="Santa Cruz">Santa Cruz</option>
+                                <option value="Cochabamba">Cochabamba</option>
+                                <option value="Oruro">Oruro</option>
+                                <option value="Potosí">Potosí</option>
+                                <option value="Tarija">Tarija</option>
+                                <option value="Beni">Beni</option>
+                                <option value="Pando">Pando</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="checkTelf">Teléfono (opcional)</label>
+                        <input type="text" id="checkTelf" placeholder="Ej. 70000000" style="width: 100%;">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="checkFacturaSame" checked style="width: auto; margin-bottom: 0;">
+                        <label for="checkFacturaSame" style="margin-bottom: 0; color: #d0d0d0; font-size: 0.85rem; cursor: pointer;">Usar la misma dirección para facturación</label>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <div class="input-group" style="flex: 2 1 250px;">
-                        <label for="checkDireccion">Dirección Completa (Calle, Nro., Zona)</label>
-                        <input type="text" id="checkDireccion" required placeholder="Ej. Av. Hernando Siles Nro. 450, Z. Central" style="width: 100%;">
+                <!-- 3. Opciones de envío -->
+                <div>
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Opciones de envío</h3>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.2); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="envio_opcion" checked id="freeShippingOpt" style="width: auto; margin-bottom: 0;">
+                            <label for="freeShippingOpt" style="margin-bottom: 0; font-weight: 500; cursor: pointer; color: white;">Free shipping</label>
+                        </div>
+                        <span style="color: #25d366; font-weight: bold; font-size: 0.9rem;">GRATIS</span>
                     </div>
-                    <div class="input-group" style="flex: 1 1 150px;">
-                        <label for="checkCiudad">Ciudad / Departamento</label>
-                        <input type="text" id="checkCiudad" required placeholder="Ej. Sucre" style="width: 100%;">
+                </div>
+
+                <!-- 4. Opciones de pago -->
+                <div>
+                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Opciones de pago</h3>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.2); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="pago_opcion" checked id="qrPaymentOpt" style="width: auto; margin-bottom: 0;">
+                            <label for="qrPaymentOpt" style="margin-bottom: 0; font-weight: 500; cursor: pointer; color: #e6c27a;">Pago por QR / Transferencia bancaria</label>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #a0a0a0; line-height: 1.5; margin: 5px 0 0 0; padding-left: 24px;">
+                            Realiza tu pago mediante transferencia directa o escaneando nuestro QR. Envía el comprobante a nuestro WhatsApp para procesar tu pedido de inmediato.
+                        </p>
                     </div>
+                </div>
+
+                <!-- 5. Nota al pedido -->
+                <div class="input-group">
+                    <label for="checkNota">Nota al pedido (opcional)</label>
+                    <textarea id="checkNota" placeholder="Notas sobre tu envío, ej: entregar por las tardes..." style="width: 100%; height: 80px; resize: none;"></textarea>
                 </div>
             </div>
 
-            <!-- Columna Derecha: Pago QR y Confirmación -->
+            <!-- Columna Derecha: Resumen de Pedido y Botón Final -->
             <div class="checkout-payment glass-card" style="display: flex; flex-direction: column;">
-                <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Resumen del Pedido</h3>
+                <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">Resumen del pedido</h3>
                 
                 <!-- Items list summary -->
-                <div id="checkoutSummaryItems" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                <div id="checkoutSummaryItems" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
                     <!-- Se cargan dinámicamente -->
                 </div>
 
                 <!-- Totales del Checkout -->
-                <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px; margin-bottom: 25px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #a0a0a0; margin-bottom: 8px;">
-                        <span>Envío:</span>
-                        <span style="color: #25d366; font-weight: bold; text-transform: uppercase;">Gratis</span>
+                <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #a0a0a0;">
+                        <span>Subtotal:</span>
+                        <span id="checkoutSubtotal" style="color: white; font-weight: 500;">Bs. 0</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: bold; color: white;">
-                        <span>Total estimado:</span>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #a0a0a0;">
+                        <span>Envío:</span>
+                        <span style="color: #a0a0a0;">Free shipping</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: bold; color: white; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 12px; margin-top: 5px;">
+                        <span>Total:</span>
                         <span id="checkoutTotalSumPage" style="color: #e6c27a;">Bs. 0</span>
                     </div>
                 </div>
 
-                <!-- Sección QR de Pago -->
-                <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 400; margin-bottom: 20px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">Pagar con QR</h3>
-                <p style="font-size: 0.8rem; color: #a0a0a0; line-height: 1.5; margin-bottom: 15px; text-align: center;">
-                    Escanea el código QR de pago oficial de la tienda, realiza la transferencia y sube tu comprobante.
-                </p>
-
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <img id="checkoutQrImgPage" src="" alt="Cargando QR oficial..." style="max-width: 180px; border-radius: 8px; border: 2px solid rgba(212,175,55,0.3); padding: 5px; background: white;">
+                <div style="font-size: 0.75rem; color: #a0a0a0; line-height: 1.4; margin-bottom: 20px;">
+                    Al proceder con la compra aceptas nuestros <span style="color: #e6c27a; cursor: pointer;">términos y condiciones</span> y la <span style="color: #e6c27a; cursor: pointer;">política de privacidad</span>.
                 </div>
 
-                <div class="input-group">
-                    <label for="comprobanteFilePage">Subir Captura del Comprobante (Imagen)</label>
-                    <input type="file" id="comprobanteFilePage" accept="image/*" required style="width: 100%;">
-                </div>
-
-                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 14px; font-weight: bold; font-size: 1rem; margin-top: auto;">
-                    Confirmar Pedido y Enviar Pago
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 14px; font-weight: bold; font-size: 1rem; margin-top: auto; text-transform: uppercase;">
+                    Realizar el pedido
                 </button>
             </div>
         </form>
     </main>
 
     <!-- Botón Flotante de WhatsApp -->
-    <a href="https://wa.me/591XXXXXXXXX?text=Hola%20STORE%20LAN,%20tengo%20una%20consulta%20sobre%20mi%20pago" class="whatsapp-float" target="_blank" title="Chatear con un asesor">
+    <a href="https://wa.me/591XXXXXXXXX?text=Hola%20STORE%20LAN,%20quisiera%20consultar%20sobre%20mi%20pedido" class="whatsapp-float" target="_blank" title="Chatear con un asesor">
         <i class="fab fa-whatsapp"></i>
     </a>
 
     <!-- Footer -->
     <footer class="social-footer glass-card" style="margin-top: 60px;">
-        <p>&copy; 2026 STORE LAN. Todos los derechos reservados.</p>
+        <p style="margin: 0; color: #a0a0a0;">Moda Circular</p>
+        <p style="margin: 0; color: #a0a0a0;">Todos los derechos reservados &copy; 2026 STORE LAN</p>
         <div class="social-links">
             <a href="#" title="TikTok"><i class="fab fa-tiktok"></i></a>
             <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>

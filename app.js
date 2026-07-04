@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (document.getElementById('checkoutFormPage')) {
         // Estamos en finalizarcompra.html
         renderizarPaginaCheckout();
+    } else if (document.getElementById('reciboId')) {
+        // Estamos en pedidorecibido.html
+        renderizarPaginaRecibo();
     } else if (catalogGridHome) {
         // Estamos en index.html (Home) - Cargar Últimos Ingresos (limit=5, orden=id_desc)
         obtenerUltimosIngresos();
@@ -386,7 +389,7 @@ if (clientContactForm) {
     });
 }
 
-// --- 4. Autenticación y Checkout con Pago QR ---
+// --- 4. Autenticación de Cliente ---
 
 // DOM Referencias
 const authModal = document.getElementById('authModal');
@@ -700,7 +703,7 @@ function renderizarPaginaCarrito() {
                     <div style="font-size: 4rem; color: #e6c27a; margin-bottom: 25px; opacity: 0.8;">
                         <i class="far fa-sad-tear"></i>
                     </div>
-                    <p style="font-size: 0.95rem; color: #d0d0d0; font-family: 'Poppins', sans-serif; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 15px; display: inline-block; margin: 0;">¡Tu carrito está actualmente vacío!</p>
+                    <p style="font-size: 0.95rem; color: #d0d0d0; font-family: 'Poppins', sans-serif; border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 10px; display: inline-block; margin: 0;">¡Tu carrito está actualmente vacío!</p>
                 </div>
 
                 <div class="catalog-header" style="text-align: center; margin-top: 60px;">
@@ -822,11 +825,13 @@ async function renderizarPaginaCheckout() {
 
     const nombreGuardado = localStorage.getItem('nombreCliente');
     if (nombreGuardado) {
-        document.getElementById('checkNombre').value = nombreGuardado;
+        document.getElementById('checkNombre').value = nombreGuardado.split(' ')[0];
+        document.getElementById('checkApellidos').value = nombreGuardado.split(' ').slice(1).join(' ') || ' ';
     }
 
     const summaryContainer = document.getElementById('checkoutSummaryItems');
     const totalSumLabel = document.getElementById('checkoutTotalSumPage');
+    const subtotalLabel = document.getElementById('checkoutSubtotal');
     
     summaryContainer.innerHTML = '';
     let total = 0;
@@ -849,37 +854,33 @@ async function renderizarPaginaCheckout() {
         `;
     });
 
+    subtotalLabel.innerText = `Bs. ${total}`;
     totalSumLabel.innerText = `Bs. ${total}`;
-
-    const checkoutQrImgPage = document.getElementById('checkoutQrImgPage');
-    try {
-        const response = await fetch(`${API_URL}/admin/qr`);
-        const data = await response.json();
-        
-        if (response.ok && data.qr_url) {
-            checkoutQrImgPage.src = data.qr_url;
-        } else {
-            checkoutQrImgPage.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
-        }
-    } catch (error) {
-        console.error("Error cargando QR para checkout:", error);
-        checkoutQrImgPage.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
-    }
 
     formPage.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const fileInput = document.getElementById('comprobanteFilePage');
-        if (!fileInput.files[0]) {
-            alert("Por favor selecciona la imagen de tu comprobante de pago.");
-            return;
-        }
-
-        const nombre = document.getElementById('checkNombre').value.trim();
         const email = document.getElementById('checkEmail').value.trim();
-        const telefono = document.getElementById('checkTelf').value.trim();
+        const nombre = document.getElementById('checkNombre').value.trim();
+        const apellidos = document.getElementById('checkApellidos').value.trim();
         const direccion = document.getElementById('checkDireccion').value.trim();
+        const apto = document.getElementById('checkApto').value.trim();
         const ciudad = document.getElementById('checkCiudad').value.trim();
+        const departamento = document.getElementById('checkDepartamento').value;
+        const telefono = document.getElementById('checkTelf').value.trim();
+        const nota = document.getElementById('checkNota').value.trim();
+
+        const envioInfo = {
+            nombre,
+            apellidos,
+            email,
+            telefono,
+            direccion,
+            apto,
+            ciudad,
+            departamento,
+            nota
+        };
 
         try {
             const detalles = carrito.map(item => ({
@@ -888,7 +889,7 @@ async function renderizarPaginaCheckout() {
                 precio_unitario: item.precio
             }));
 
-            // 1. Crear Orden
+            // 1. Crear Orden en el Backend
             const responseOrden = await fetch(`${API_URL}/ordenes`, {
                 method: 'POST',
                 headers: {
@@ -896,11 +897,7 @@ async function renderizarPaginaCheckout() {
                 },
                 body: JSON.stringify({ 
                     total, 
-                    detalles,
-                    envio_nombre: nombre,
-                    envio_email: email,
-                    envio_telefono: telefono,
-                    envio_direccion: `${direccion}, ${ciudad}`
+                    detalles
                 })
             });
 
@@ -913,31 +910,112 @@ async function renderizarPaginaCheckout() {
 
             const ordenId = dataOrden.orden.id;
 
-            // 2. Subir Comprobante
-            const formData = new FormData();
-            formData.append('comprobante', fileInput.files[0]);
+            // Guardamos el resumen del pedido en localStorage para la página de recibo
+            const ordenResumen = {
+                id: ordenId,
+                fecha: dataOrden.orden.fecha || new Date(),
+                total: total,
+                items: carrito,
+                envio: envioInfo
+            };
+            localStorage.setItem('ultimoPedidoStoreLan', JSON.stringify(ordenResumen));
 
-            const responseComprobante = await fetch(`${API_URL}/ordenes/${ordenId}/comprobante`, {
-                method: 'POST',
-                body: formData
-            });
+            // Vaciar carrito
+            carrito = [];
+            guardarCarrito();
+            actualizarCarritoDOM();
 
-            const dataComprobante = await responseComprobante.json();
-
-            if (responseComprobante.ok) {
-                alert(`¡Pedido registrado exitosamente!\n\nID de Orden: #${ordenId}\n\nRevisaremos tu comprobante y aprobaremos tu orden lo antes posible. ¡Gracias por comprar en STORE LAN!`);
-                
-                carrito = [];
-                guardarCarrito();
-                actualizarCarritoDOM();
-
-                window.location.href = 'index.html';
-            } else {
-                alert(dataComprobante.error || "El pedido se guardó, pero la subida de tu comprobante falló. Contáctanos por WhatsApp para enviarlo.");
-            }
+            // Redirigir a pedidorecibido.html
+            window.location.href = 'pedidorecibido.html';
         } catch (error) {
             console.error("Error procesando compra:", error);
-            alert("Error de conexión al procesar tu compra.");
+            alert("Error de conexión al registrar tu pedido.");
         }
     });
+}
+
+// --- 10. Lógica de Pedido Recibido (pedidorecibido.html) ---
+async function renderizarPaginaRecibo() {
+    const reciboIdLabel = document.getElementById('reciboId');
+    if (!reciboIdLabel) return;
+
+    // Obtener los detalles de la orden guardada en localStorage
+    const ultimoPedido = JSON.parse(localStorage.getItem('ultimoPedidoStoreLan'));
+    if (!ultimoPedido) {
+        alert("No se encontró información del pedido. Redireccionando a la tienda...");
+        window.location.href = 'tienda.html';
+        return;
+    }
+
+    // 1. Mostrar cabecera
+    reciboIdLabel.innerText = `#${ultimoPedido.id}`;
+    
+    const fechaObj = new Date(ultimoPedido.fecha || Date.now());
+    const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('reciboFecha').innerText = fechaObj.toLocaleDateString('es-ES', opcionesFecha);
+    
+    document.getElementById('reciboTotal').innerText = `Bs. ${ultimoPedido.total}`;
+    document.getElementById('reciboSubtotal').innerText = `Bs. ${ultimoPedido.total}`;
+    document.getElementById('reciboTotalTable').innerText = `Bs. ${ultimoPedido.total}`;
+
+    // 2. Cargar QR oficial
+    const reciboQrImg = document.getElementById('reciboQrImg');
+    try {
+        const response = await fetch(`${API_URL}/admin/qr`);
+        const data = await response.json();
+        if (response.ok && data.qr_url) {
+            reciboQrImg.src = data.qr_url;
+        } else {
+            reciboQrImg.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
+        }
+    } catch (e) {
+        console.error("Error cargando QR:", e);
+        reciboQrImg.src = 'https://via.placeholder.com/220x220.png?text=QR+No+Disponible';
+    }
+
+    // 3. Renderizar items
+    const itemsContainer = document.getElementById('reciboItems');
+    itemsContainer.innerHTML = '';
+    
+    let listadoParaMensaje = ''; // Texto para enviar por WhatsApp
+
+    ultimoPedido.items.forEach(item => {
+        const itemTotal = item.precio * item.cantidad;
+        listadoParaMensaje += `- ${item.nombre} x ${item.cantidad} (Bs. ${itemTotal})\n`;
+
+        itemsContainer.innerHTML += `
+            <tr>
+                <td style="padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #d0d0d0;">
+                    ${item.nombre} <strong style="color: #e6c27a; margin-left: 5px;">× ${item.cantidad}</strong>
+                </td>
+                <td style="padding: 15px 10px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.05); color: white; font-weight: 500;">
+                    Bs. ${itemTotal}
+                </td>
+            </tr>
+        `;
+    });
+
+    // 4. Renderizar direcciones
+    const checkInfo = ultimoPedido.envio;
+    const direccionTexto = `
+        ${checkInfo.nombre} ${checkInfo.apellidos}<br>
+        ${checkInfo.direccion}<br>
+        ${checkInfo.apto ? checkInfo.apto + '<br>' : ''}
+        ${checkInfo.ciudad}, ${checkInfo.departamento}<br>
+        Bolivia<br>
+        <i class="fas fa-phone-alt" style="margin-right: 5px; color: #e6c27a; font-size: 0.75rem; margin-top: 10px;"></i> ${checkInfo.telefono}<br>
+        <i class="fas fa-envelope" style="margin-right: 5px; color: #e6c27a; font-size: 0.75rem;"></i> ${checkInfo.email}
+    `;
+
+    document.getElementById('reciboFacturacion').innerHTML = direccionTexto;
+    document.getElementById('reciboEnvio').innerHTML = direccionTexto;
+
+    // 5. Configurar botón de WhatsApp
+    const btnSendWhatsapp = document.getElementById('btnSendWhatsapp');
+    const tlfTienda = "59164715885"; // Celular de Store-LAN
+    
+    const mensajeTexto = `Hola STORE LAN, acabo de realizar un pedido:\n\n*Pedido Nro:* #${ultimoPedido.id}\n*Total:* Bs. ${ultimoPedido.total}\n\n*Detalles del Pedido:*\n${listadoParaMensaje}\n*Datos de Envío:*\n- Nombre: ${checkInfo.nombre} ${checkInfo.apellidos}\n- Celular: ${checkInfo.telefono}\n- Dirección: ${checkInfo.direccion}, ${checkInfo.apto ? checkInfo.apto : ''} (${checkInfo.ciudad} - ${checkInfo.departamento})\n\nAdjunto la captura del comprobante de transferencia a continuación:`;
+    
+    const whatsappUrl = `https://wa.me/${tlfTienda}?text=${encodeURIComponent(mensajeTexto)}`;
+    btnSendWhatsapp.href = whatsappUrl;
 }

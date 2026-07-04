@@ -17,6 +17,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "pedidorecibido.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "app.js",
       "use": "@vercel/static"
     },
