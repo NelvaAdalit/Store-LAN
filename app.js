@@ -1019,4 +1019,59 @@ async function renderizarPaginaRecibo() {
     
     const whatsappUrl = `https://wa.me/${tlfTienda}?text=${encodeURIComponent(mensajeTexto)}`;
     btnSendWhatsapp.href = whatsappUrl;
+
+    // Registrar acción de click para avisar al backend de que se envió por WhatsApp
+    btnSendWhatsapp.addEventListener('click', async () => {
+        try {
+            await fetch(`${API_URL}/ordenes/${ultimoPedido.id}/comprobante-whatsapp`, {
+                method: 'POST'
+            });
+        } catch (e) {
+            console.error("Error al marcar comprobante por WhatsApp:", e);
+        }
+    });
+
+    // 6. Subir comprobante por Web
+    const btnUploadWebComprobante = document.getElementById('btnUploadWebComprobante');
+    const comprobanteWebFile = document.getElementById('comprobanteWebFile');
+
+    if (btnUploadWebComprobante && comprobanteWebFile) {
+        btnUploadWebComprobante.addEventListener('click', async () => {
+            if (!comprobanteWebFile.files[0]) {
+                alert("Por favor selecciona la imagen de tu comprobante de pago.");
+                return;
+            }
+
+            btnUploadWebComprobante.disabled = true;
+            btnUploadWebComprobante.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+
+            const formData = new FormData();
+            formData.append('comprobante', comprobanteWebFile.files[0]);
+
+            try {
+                const response = await fetch(`${API_URL}/ordenes/${ultimoPedido.id}/comprobante`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("¡Comprobante subido exitosamente al sitio web!\n\nRevisaremos tu pago a la brevedad para preparar tu envío. ¡Muchas gracias!");
+                    btnUploadWebComprobante.innerHTML = '<i class="fas fa-check"></i> Subido con Éxito';
+                    btnUploadWebComprobante.style.background = '#25d366';
+                    comprobanteWebFile.disabled = true;
+                } else {
+                    alert(data.error || "Ocurrió un error al subir el comprobante. Por favor intenta enviarlo por WhatsApp.");
+                    btnUploadWebComprobante.disabled = false;
+                    btnUploadWebComprobante.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Subir Comprobante a la Web';
+                }
+            } catch (error) {
+                console.error("Error subiendo comprobante:", error);
+                alert("Error de conexión al intentar subir el comprobante. Por favor intenta enviarlo por WhatsApp.");
+                btnUploadWebComprobante.disabled = false;
+                btnUploadWebComprobante.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Subir Comprobante a la Web';
+            }
+        });
+    }
 }

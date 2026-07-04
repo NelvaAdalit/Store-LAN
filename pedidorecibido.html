@@ -76,16 +76,28 @@
             </div>
 
             <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 25px; margin-bottom: 40px; font-size: 0.9rem; line-height: 1.6; color: #d0d0d0;">
-                <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px;">
+                <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 15px;">
                     <li>Realiza tu pago escaneando el código QR oficial de la tienda que se muestra abajo:
                         <div style="text-align: center; margin: 15px 0;">
                             <img id="reciboQrImg" src="" alt="Código QR oficial" style="max-width: 180px; border-radius: 8px; border: 2px solid rgba(212,175,55,0.3); padding: 5px; background: white;">
                         </div>
                     </li>
                     <li>
-                        Envía la captura de pantalla de tu comprobante a nuestro WhatsApp para procesar tu pedido de inmediato:
-                        <div style="margin-top: 10px;">
-                            <a id="btnSendWhatsapp" href="#" target="_blank" class="btn-gold" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; font-size: 0.85rem; color: #1a1a1a;">
+                        <strong>Sube tu comprobante de pago directamente a nuestra web:</strong>
+                        <div style="margin-top: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.2); padding: 15px; border-radius: 8px; max-width: 400px; display: flex; flex-direction: column; gap: 12px;">
+                            <input type="file" id="comprobanteWebFile" accept="image/*" style="width: 100%;">
+                            <button id="btnUploadWebComprobante" class="btn-gold" style="padding: 10px 16px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; width: 100%; cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="margin-right: 5px;"></i> Subir Comprobante a la Web
+                            </button>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>O si prefieres, envíalo directamente por WhatsApp:</strong>
+                        <p style="font-size: 0.8rem; color: #a0a0a0; margin: 2px 0 8px 0; line-height: 1.4;">
+                            Si decides enviarlo por WhatsApp, haz clic en el botón de abajo para que notifiquemos al administrador y podamos coordinar directamente.
+                        </p>
+                        <div>
+                            <a id="btnSendWhatsapp" href="#" target="_blank" class="btn-gold" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; font-size: 0.85rem; color: #1a1a1a; background: #25d366; border: none;">
                                 <i class="fab fa-whatsapp" style="font-size: 1.1rem;"></i> Enviar Comprobante por WhatsApp
                             </a>
                         </div>

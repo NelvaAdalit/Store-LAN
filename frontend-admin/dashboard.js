@@ -337,9 +337,24 @@ async function cargarOrdenes() {
                 }
 
                 // Mostrar comprobante
-                let comprobanteHtml = '<span style="color: #a0a0a0;">Sin subir</span>';
+                let comprobanteHtml = '';
                 if (orden.comprobante_url) {
-                    comprobanteHtml = `<a href="${orden.comprobante_url}" target="_blank" title="Ver Comprobante completo" style="display: inline-block;"><img src="${orden.comprobante_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.3);"></a>`;
+                    if (orden.comprobante_url === 'Enviado a WhatsApp') {
+                        comprobanteHtml = `<span style="color: #25d366; font-weight: bold; font-size: 0.85rem;"><i class="fab fa-whatsapp"></i> Enviado a WhatsApp</span>`;
+                    } else {
+                        comprobanteHtml = `<a href="${orden.comprobante_url}" target="_blank" title="Ver Comprobante completo" style="display: inline-block;"><img src="${orden.comprobante_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.3);"></a>`;
+                    }
+                } else {
+                    const cliName = orden.detalles_envio ? orden.detalles_envio.nombre : (orden.clientes ? orden.clientes.nombre : '');
+                    const cliTelf = orden.detalles_envio ? orden.detalles_envio.telefono : (orden.clientes ? orden.clientes.telefono : '');
+                    comprobanteHtml = `
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                            <span style="color: #ff4d4d; font-size: 0.8rem; font-weight: 500;">Sin subir</span>
+                            <button onclick="recordarPagoWhatsApp(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}', '${orden.total}')" title="Enviar recordatorio de pago" style="padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; background: rgba(255,183,3,0.15); border: 1px solid #ffb703; color: #ffb703; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-bell"></i> Recordar
+                            </button>
+                        </div>
+                    `;
                 }
 
                 // Colorear estado
@@ -662,6 +677,21 @@ window.notificarEnvioBus = (ordenId, clienteNombre, clienteTelefono) => {
     const tlfFinal = tlfDestinatario.startsWith('591') ? tlfDestinatario : `591${tlfDestinatario}`;
 
     const mensajeText = `Hola ${clienteNombre || 'cliente'},\n\nTe informamos que tu pedido *#${ordenId}* de *STORE LAN* ha sido enviado desde la Terminal de Sucre.\n\n*Detalles del Envío:*\n- *Empresa de Transporte:* ${empresa}\n- *Datos del Bus:* ${busPlaca}\n\nRecuerda recogerlo en la terminal de buses de tu localidad presentando tu cédula de identidad y cancelando el costo del flete correspondiente (entre 10 y 20 Bs). ¡Muchas gracias por tu preferencia! ✨`;
+
+    const whatsappUrl = `https://wa.me/${tlfFinal}?text=${encodeURIComponent(mensajeText)}`;
+    window.open(whatsappUrl, '_blank');
+};
+
+window.recordarPagoWhatsApp = (ordenId, clienteNombre, clienteTelefono, total) => {
+    if (!clienteTelefono) {
+        alert("El cliente no tiene registrado un número de teléfono.");
+        return;
+    }
+
+    const tlfDestinatario = clienteTelefono.replace(/\D/g, '');
+    const tlfFinal = tlfDestinatario.startsWith('591') ? tlfDestinatario : `591${tlfDestinatario}`;
+
+    const mensajeText = `Hola ${clienteNombre || 'cliente'},\n\nTe escribimos de *STORE LAN* para recordarte que tienes un pedido pendiente (*#${ordenId}*) por un total de *Bs. ${total}*.\n\nPor favor, sube tu comprobante de pago QR al sitio web o envíanoslo por este chat para que podamos confirmar tu pago, separar tu prenda y preparar tu envío lo antes posible. ¡Muchas gracias! 😊✨`;
 
     const whatsappUrl = `https://wa.me/${tlfFinal}?text=${encodeURIComponent(mensajeText)}`;
     window.open(whatsappUrl, '_blank');

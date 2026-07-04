@@ -76,8 +76,20 @@ export const subirComprobantePago = async (req, res) => {
         // 1. Optimizar la imagen a WebP
         const webpBuffer = await optimizarImagen(req.file.buffer);
 
-        // 2. Generar nombre de archivo único
-        const nombreArchivo = `${Date.now()}-orden-${id}.webp`;
+        // 2.5 Asegurar que el bucket 'comprobantes' exista
+        try {
+            const { data: buckets } = await supabase.storage.listBuckets();
+            const bucketExists = buckets && buckets.some(b => b.id === 'comprobantes');
+            if (!bucketExists) {
+                await supabase.storage.createBucket('comprobantes', {
+                    public: true,
+                    allowedMimeTypes: ['image/webp', 'image/png', 'image/jpeg'],
+                    fileSizeLimit: 5242880 // 5MB
+                });
+            }
+        } catch (bucketErr) {
+            console.error("Error asegurando bucket 'comprobantes':", bucketErr);
+        }
 
         // 3. Subir archivo a Supabase Storage (bucket 'comprobantes')
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -222,6 +234,29 @@ export const obtenerMisOrdenes = async (req, res) => {
         return res.json(data);
     } catch (error) {
         console.error("Excepción en obtenerMisOrdenes:", error);
+        return res.status(500).json({ error: "Error interno del servidor." });
+    }
+};
+
+/**
+ * Marca que el comprobante fue enviado directamente por WhatsApp.
+ */
+export const marcarComprobanteWhatsApp = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('ordenes')
+            .update({ comprobante_url: 'Enviado a WhatsApp' })
+            .eq('id', parseInt(id));
+
+        if (error) {
+            console.error("Error al marcar comprobante por WhatsApp:", error);
+            return res.status(500).json({ error: "Error al actualizar el estado del comprobante." });
+        }
+
+        return res.json({ message: "Orden marcada como enviada por WhatsApp con éxito." });
+    } catch (error) {
+        console.error("Excepción en marcarComprobanteWhatsApp:", error);
         return res.status(500).json({ error: "Error interno del servidor." });
     }
 };
