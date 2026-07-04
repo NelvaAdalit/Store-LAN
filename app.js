@@ -98,14 +98,16 @@ async function obtenerCatalogo() {
                 const categoriaNombre = producto.categorias?.nombre || producto.categorias || 'Colección';
                 const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
 
-                // Determinar si tiene etiqueta de oferta (demo balanceado)
-                const esOferta = producto.nombre.toLowerCase().includes('oferta') || 
-                                 (producto.descripcion && producto.descripcion.toLowerCase().includes('oferta')) ||
-                                 producto.id % 2 === 0;
+                const esOferta = producto.precio_oferta && parseFloat(producto.precio_oferta) > 0;
                 const badgeHtml = esOferta ? `<span class="badge-oferta">Oferta</span>` : '';
+                const precioCompra = esOferta ? parseFloat(producto.precio_oferta) : parseFloat(producto.precio);
+
+                const precioHtml = esOferta
+                    ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.85rem; margin-right: 8px;">Bs. ${producto.precio}</span>Bs. ${producto.precio_oferta}`
+                    : `Bs. ${producto.precio}`;
 
                 catalogGrid.innerHTML += `
-                    <div class="product-card glass-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${producto.precio}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}')">
+                    <div class="product-card glass-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${precioCompra}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}', ${producto.precio})">
                         <div class="img-container" style="position: relative;">
                             ${badgeHtml}
                             <img src="${fotoUrl}" alt="${producto.nombre}" loading="lazy">
@@ -115,8 +117,8 @@ async function obtenerCatalogo() {
                             <h3 class="product-title">${producto.nombre}</h3>
                             <p class="product-desc">${producto.descripcion || 'Sin descripción disponible.'}</p>
                             <div class="product-price-row">
-                                <span class="product-price">Bs. ${producto.precio}</span>
-                                <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${producto.precio}, '${fotoUrl}')">
+                                <span class="product-price">${precioHtml}</span>
+                                <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${precioCompra}, '${fotoUrl}')">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -152,22 +154,24 @@ async function obtenerUltimosIngresos() {
                 const categoriaNombre = producto.categorias?.nombre || producto.categorias || 'Colección';
                 const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/250x250.png?text=STORE+LAN';
 
-                // Determinar si tiene etiqueta de oferta (demo balanceado)
-                const esOferta = producto.nombre.toLowerCase().includes('oferta') || 
-                                 (producto.descripcion && producto.descripcion.toLowerCase().includes('oferta')) ||
-                                 producto.id % 2 === 0;
+                const esOferta = producto.precio_oferta && parseFloat(producto.precio_oferta) > 0;
                 const badgeHtml = esOferta ? `<span class="badge-oferta">Oferta</span>` : '';
+                const precioCompra = esOferta ? parseFloat(producto.precio_oferta) : parseFloat(producto.precio);
+
+                const precioHtml = esOferta
+                    ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.8rem; margin-right: 8px;">Bs. ${producto.precio}</span>Bs. ${producto.precio_oferta}`
+                    : `Bs. ${producto.precio}`;
 
                 catalogGridHome.innerHTML += `
-                    <div class="novedades-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${producto.precio}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}')">
+                    <div class="novedades-card" onclick="verDetallesProducto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${categoriaNombre.replace(/'/g, "\\'")}', '${fotoUrl}', ${precioCompra}, '${(producto.descripcion || 'Sin descripción disponible.').replace(/'/g, "\\'")}', ${producto.precio})">
                         <div class="novedades-img-container">
                             ${badgeHtml}
                             <img src="${fotoUrl}" alt="${producto.nombre}" loading="lazy">
                         </div>
                         <div class="novedades-info">
                             <h3 class="novedades-title">${producto.nombre}</h3>
-                            <span class="novedades-price">Bs. ${producto.precio}</span>
-                            <button class="btn-novedades-add" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${producto.precio}, '${fotoUrl}')">
+                            <span class="novedades-price">${precioHtml}</span>
+                            <button class="btn-novedades-add" onclick="event.stopPropagation(); agregarAlCarritoDirecto(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', ${precioCompra}, '${fotoUrl}')">
                                 Añadir al Carrito
                             </button>
                         </div>
@@ -675,12 +679,20 @@ window.agregarAlCarritoDirecto = async (id, nombre, precio, foto) => {
 const productDetailModal = document.getElementById('productDetailModal');
 const btnCloseDetailModal = document.getElementById('btnCloseDetailModal');
 
-window.verDetallesProducto = async (id, nombre, categoria, foto, precio, descripcion) => {
+window.verDetallesProducto = async (id, nombre, categoria, foto, precio, descripcion, precioOriginal = null) => {
     document.getElementById('detailProductImg').src = foto;
     document.getElementById('detailProductCat').innerText = categoria;
     document.getElementById('detailProductName').innerText = nombre;
     document.getElementById('detailProductDesc').innerText = descripcion;
-    document.getElementById('detailProductPrice').innerText = `Bs. ${precio}`;
+    
+    if (precioOriginal && parseFloat(precioOriginal) !== parseFloat(precio)) {
+        document.getElementById('detailProductPrice').innerHTML = `
+            <span style="text-decoration: line-through; color: #a0a0a0; font-size: 1.1rem; margin-right: 12px;">Bs. ${precioOriginal}</span>
+            Bs. ${precio}
+        `;
+    } else {
+        document.getElementById('detailProductPrice').innerText = `Bs. ${precio}`;
+    }
     
     const select = document.getElementById('detailVariantSelect');
     select.innerHTML = '<option value="">Cargando opciones...</option>';

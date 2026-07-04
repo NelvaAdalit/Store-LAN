@@ -105,7 +105,7 @@ export const obtenerProductos = async (req, res) => {
 
 export const crearProducto = async (req, res) => {
     try {
-        const { nombre, descripcion, precio, id_categoria } = req.body;
+        const { nombre, descripcion, precio, id_categoria, precio_oferta } = req.body;
 
         if (!nombre || !precio || !id_categoria) {
             return res.status(400).json({ error: "Nombre, precio e id_categoria son requeridos" });
@@ -143,6 +143,7 @@ export const crearProducto = async (req, res) => {
                 nombre,
                 descripcion,
                 precio: parseFloat(precio),
+                precio_oferta: precio_oferta ? parseFloat(precio_oferta) : null,
                 id_categoria: parseInt(id_categoria)
             })
             .select('*')
@@ -178,12 +179,15 @@ export const crearProducto = async (req, res) => {
 export const actualizarProducto = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, descripcion, precio, id_categoria } = req.body;
+        const { nombre, descripcion, precio, id_categoria, precio_oferta } = req.body;
 
         let updateData = {};
         if (nombre) updateData.nombre = nombre;
         if (descripcion !== undefined) updateData.descripcion = descripcion;
         if (precio) updateData.precio = parseFloat(precio);
+        if (precio_oferta !== undefined) {
+            updateData.precio_oferta = (precio_oferta === '' || precio_oferta === null || precio_oferta === 'null' || precio_oferta === 'undefined') ? null : parseFloat(precio_oferta);
+        }
         if (id_categoria) updateData.id_categoria = parseInt(id_categoria);
 
         let imagenUrl = null;

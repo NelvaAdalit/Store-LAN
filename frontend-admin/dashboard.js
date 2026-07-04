@@ -33,6 +33,7 @@ const productIdInput = document.getElementById('productId');
 const prodNombreInput = document.getElementById('prodNombre');
 const prodDescripcionInput = document.getElementById('prodDescripcion');
 const prodPrecioInput = document.getElementById('prodPrecio');
+const prodPrecioOfertaInput = document.getElementById('prodPrecioOferta');
 const prodCategoriaSelect = document.getElementById('prodCategoria');
 const prodImagenInput = document.getElementById('prodImagen');
 
@@ -100,6 +101,11 @@ async function cargarProductos() {
                 const categoriaNombre = producto.categorias?.nombre || producto.categorias || 'Sin categoría';
                 const fotoUrl = (producto.imagenes && producto.imagenes.length > 0) ? producto.imagenes[0].url : 'https://via.placeholder.com/50x50.png?text=Sin+foto';
                 
+                // Mostrar precio de oferta si existe
+                const precioTexto = producto.precio_oferta 
+                    ? `<span style="text-decoration: line-through; color: #a0a0a0; font-size: 0.85rem; margin-right: 8px;">Bs. ${producto.precio}</span>Bs. ${producto.precio_oferta}`
+                    : `Bs. ${producto.precio || 0}`;
+
                 // Agregamos filas dinámicamente escapando caracteres especiales en strings
                 tbody.innerHTML += `
                     <tr>
@@ -107,12 +113,12 @@ async function cargarProductos() {
                         <td><img src="${fotoUrl}" alt="${producto.nombre}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(212, 175, 55, 0.2);"></td>
                         <td>${producto.nombre || 'Sin nombre'}</td>
                         <td>${categoriaNombre}</td>
-                        <td style="color: #e6c27a; font-weight: bold;">Bs. ${producto.precio || 0}</td>
+                        <td style="color: #e6c27a; font-weight: bold;">${precioTexto}</td>
                         <td>
                             <button onclick="abrirModalVariantes(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}')" title="Gestionar Stock" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
                                 <i class="fas fa-cubes"></i>
                             </button>
-                            <button onclick="prepararEdicion(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${(producto.descripcion || '').replace(/'/g, "\\'")}', ${producto.precio}, ${producto.id_categoria})" title="Editar" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
+                            <button onclick="prepararEdicion(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${(producto.descripcion || '').replace(/'/g, "\\'")}', ${producto.precio}, ${producto.id_categoria}, ${producto.precio_oferta || 'null'})" title="Editar" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button onclick="eliminarProducto(${producto.id})" title="Eliminar" style="background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-size: 1.1rem;">
@@ -155,12 +161,13 @@ window.addEventListener('click', (e) => {
 });
 
 // Preparar Edición
-window.prepararEdicion = (id, nombre, descripcion, precio, id_categoria) => {
+window.prepararEdicion = (id, nombre, descripcion, precio, id_categoria, precio_oferta) => {
     modalTitle.innerText = "Editar Producto";
     productIdInput.value = id;
     prodNombreInput.value = nombre;
     prodDescripcionInput.value = (descripcion === 'undefined' || !descripcion) ? '' : descripcion;
     prodPrecioInput.value = precio;
+    prodPrecioOfertaInput.value = precio_oferta ? precio_oferta : '';
     prodCategoriaSelect.value = id_categoria;
     prodImagenInput.required = false; // Opcional en edición
     productModal.style.display = "flex";
@@ -174,6 +181,7 @@ productForm.addEventListener('submit', async (e) => {
     const nombre = prodNombreInput.value;
     const descripcion = prodDescripcionInput.value;
     const precio = prodPrecioInput.value;
+    const precio_oferta = prodPrecioOfertaInput.value;
     const id_categoria = prodCategoriaSelect.value;
     const imagen = prodImagenInput.files[0];
 
@@ -182,6 +190,7 @@ productForm.addEventListener('submit', async (e) => {
     formData.append('nombre', nombre);
     formData.append('descripcion', descripcion);
     formData.append('precio', precio);
+    formData.append('precio_oferta', precio_oferta);
     formData.append('id_categoria', id_categoria);
     if (imagen) {
         formData.append('imagen', imagen);
