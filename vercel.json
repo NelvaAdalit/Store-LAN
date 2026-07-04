@@ -5,7 +5,19 @@
       "use": "@vercel/static"
     },
     {
-      "src": "frontend-client/**",
+      "src": "app.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "style.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "config.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**",
       "use": "@vercel/static"
     },
     {

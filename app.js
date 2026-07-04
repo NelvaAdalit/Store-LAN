@@ -371,7 +371,7 @@ clientLoginForm.addEventListener('submit', async (e) => {
             if (data.rol === 'admin' || data.rol === 'superadmin') {
                 localStorage.setItem('tokenStoreLan', data.token);
                 alert("¡Acceso concedido como Administrador! Redireccionando al panel de control...");
-                window.location.href = '../frontend-admin/dashboard.html';
+                window.location.href = 'frontend-admin/dashboard.html';
                 return;
             }
 
@@ -433,7 +433,7 @@ async function abrirCheckoutModal() {
     
     // Cargar el QR oficial desde el endpoint público
     try {
-        const response = await fetch('http://localhost:3001/api/admin/qr');
+        const response = await fetch(`${API_URL}/admin/qr`);
         const data = await response.json();
         
         if (response.ok && data.qr_url) {

@@ -2,16 +2,308 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=frontend-client/index.html">
-    <title>STORE LAN - Cargando Tienda...</title>
-    <script>
-        window.location.href = "frontend-client/index.html";
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>STORE LAN - Ropa y Moda Exclusiva de Lujo en Bolivia</title>
+    <meta name="description" content="Descubre la colección de STORE LAN. Prendas exclusivas confeccionadas a medida con telas premium de seda, lino y algodón. Diseños únicos de moda y elegancia en Bolivia.">
+    <meta name="keywords" content="store lan, ropa de seda, moda bolivia, lino, blusas de seda, vestidos, ropa elegante, confección a medida">
+    <meta name="author" content="STORE LAN">
+    
+    <!-- Open Graph (Facebook/Instagram/WhatsApp sharing metadata) -->
+    <meta property="og:title" content="STORE LAN - Ropa y Moda Exclusiva de Lujo">
+    <meta property="og:description" content="Explora nuestro catálogo en línea. Moda premium diseñada a tu medida en Bolivia.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://127.0.0.1:5500/index.html">
+    <meta property="og:site_name" content="STORE LAN">
+    
+    <!-- Google Fonts for Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body style="background-color: #170207; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0;">
-    <div style="text-align: center;">
-        <h2 style="color: #e6c27a; font-weight: 400; letter-spacing: 2px;">STORE LAN</h2>
-        <p style="color: #a0a0a0; font-size: 0.9rem;">Redireccionando a la tienda online...</p>
+<body>
+    <!-- Esferas de fondo de la marca -->
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
+
+    <!-- Menú de Navegación Flotante -->
+    <header class="navbar-wrapper">
+        <nav class="navbar glass-card">
+            <div class="logo">STORE LAN</div>
+            <div style="display: flex; gap: 25px; align-items: center;" class="nav-links-client">
+                <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" style="color: white; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.3s;">Inicio</a>
+                <a href="#catalogo" style="color: white; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.3s;">Tienda</a>
+                <a href="#contactoSection" style="color: white; text-decoration: none; font-size: 0.95rem; font-weight: 500; transition: color 0.3s;">Contacto</a>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchQuery" placeholder="Buscar prendas de seda, algodón...">
+                <button id="btnSearch"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="nav-actions">
+                <button id="btnOpenAuth" class="btn-outline" style="padding: 10px 18px; font-size: 0.9rem; border-radius: 8px; margin-right: 15px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer;">
+                    <i class="fas fa-user-circle" style="margin-right: 5px;"></i> <span id="clientNameNav">Iniciar Sesión</span>
+                </button>
+                <button id="btnOpenCart" class="btn-cart">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span id="cartCount" class="badge">0</span>
+                </button>
+            </div>
+        </nav>
+        <div class="category-filters-container">
+            <div class="category-filters glass-card" id="categoryList">
+                <button class="active" data-cat="all">Todos</button>
+                <!-- Categorías se cargan dinámicamente -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner Hero Promocional (Carrusel Dinámico) -->
+    <section class="hero-carousel" id="heroCarousel">
+        <div class="carousel-inner">
+            <!-- Diapositiva 1 -->
+            <div class="carousel-slide active" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(23,2,7,0.85)), url('assets/banner1.webp');">
+                <div class="hero-glass glass-card">
+                    <h1>Colección Exclusiva 2026</h1>
+                    <p>Descubre prendas premium de seda, lino y algodón confeccionadas a tu medida.</p>
+                    <button class="btn-explore" onclick="document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})">Ver Catálogo</button>
+                </div>
+            </div>
+            <!-- Diapositiva 2 -->
+            <div class="carousel-slide" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(23,2,7,0.85)), url('assets/banner2.webp');">
+                <div class="hero-glass glass-card">
+                    <h1>Tendencias de Temporada</h1>
+                    <p>Colores elegantes, cortes de alta costura y detalles dorados sofisticados.</p>
+                    <button class="btn-explore" onclick="document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})">Explorar Colección</button>
+                </div>
+            </div>
+            <!-- Diapositiva 3 -->
+            <div class="carousel-slide" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(23,2,7,0.85)), url('assets/banner3.webp');">
+                <div class="hero-glass glass-card">
+                    <h1>Calidad y Detalle Único</h1>
+                    <p>Prendas diseñadas para resaltar tu estilo con el máximo confort y elegancia.</p>
+                    <button class="btn-explore" onclick="document.getElementById('contactoSection').scrollIntoView({behavior: 'smooth'})">Contacto Directo</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botones de Navegación del Carrusel -->
+        <button class="carousel-btn prev-btn" id="prevSlide" type="button"><i class="fas fa-chevron-left"></i></button>
+        <button class="carousel-btn next-btn" id="nextSlide" type="button"><i class="fas fa-chevron-right"></i></button>
+        
+        <!-- Indicadores (Puntos) -->
+        <div class="carousel-dots">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+        </div>
+    </section>
+
+    <!-- Catálogo de Productos -->
+    <main class="store-catalog" id="catalogo">
+        <div class="catalog-header">
+            <h2>Nuestras Prendas</h2>
+        </div>
+        <div class="catalog-grid" id="catalogGrid">
+            <!-- Productos cargados dinámicamente -->
+            <div class="loading-spinner">Cargando productos...</div>
+        </div>
+    </main>
+
+    <!-- Formulario de Contacto -->
+    <section class="contact-section" id="contactoSection">
+        <div class="contact-glass glass-card">
+            <h2>Escríbenos</h2>
+            <p>¿Interesada en alguna prenda a medida? Envíanos tu mensaje y te asesoraremos.</p>
+            <form id="clientContactForm">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="nombre">Nombre Completo</label>
+                        <input type="text" id="nombre" required placeholder="Ej. Nelva Adalid">
+                    </div>
+                    <div class="input-group">
+                        <label for="email">Correo Electrónico</label>
+                        <input type="email" id="email" required placeholder="correo@example.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="mensaje">Mensaje o Prenda de interés</label>
+                    <textarea id="mensaje" required placeholder="Deseo consultar sobre..."></textarea>
+                </div>
+                <button type="submit" class="btn-gold">Enviar Consulta</button>
+            </form>
+            <p id="contactResponse"></p>
+        </div>
+    </section>
+
+    <!-- Carrito de Compras (Sidebar Desplegable) -->
+    <div id="cartSidebar" class="cart-sidebar glass-card" style="transform: translateX(105%);">
+        <div class="cart-header">
+            <h3>Bolsa de Compras</h3>
+            <button id="btnCloseCart" class="btn-close">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItemsContainer">
+            <!-- Items del carrito -->
+            <p class="empty-cart-text">Tu bolsa de compras está vacía.</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span>Total:</span>
+                <span id="cartTotalSum">Bs. 0</span>
+            </div>
+            <button id="btnCheckout" class="btn-gold" style="width: 100%; border-radius: 12px; margin-top: 15px;">Confirmar Pedido</button>
+        </div>
+    </div>
+
+    <!-- Botón Flotante de WhatsApp -->
+    <a href="https://wa.me/591XXXXXXXXX?text=Hola%20STORE%20LAN,%20quisiera%20consultar%20sobre%20un%20producto" class="whatsapp-float" target="_blank" title="Chatear con un asesor">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer class="social-footer glass-card">
+        <p>&copy; 2026 STORE LAN. Todos los derechos reservados.</p>
+        <div class="social-links">
+            <a href="#" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+        </div>
+    </footer>
+
+    <!-- Modal de Autenticación de Cliente (Login/Registro) -->
+    <div id="authModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-modal" id="btnCloseAuthModal">&times;</span>
+            
+            <!-- Pestañas -->
+            <div style="display: flex; gap: 25px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <h3 id="tabLogin" class="auth-tab active" style="cursor: pointer; color: #e6c27a; font-weight: 600;">Iniciar Sesión</h3>
+                <h3 id="tabRegister" class="auth-tab" style="cursor: pointer; color: #a0a0a0; font-weight: 500;">Registrarse</h3>
+            </div>
+
+            <!-- Formulario Login -->
+            <form id="clientLoginForm">
+                <div class="input-group">
+                    <label for="loginEmail">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" required placeholder="correo@example.com">
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••">
+                </div>
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 12px; margin-top: 10px;">Entrar</button>
+            </form>
+
+            <!-- Formulario Registro -->
+            <form id="clientRegisterForm" style="display: none;">
+                <div class="input-group">
+                    <label for="regNombre">Nombre Completo</label>
+                    <input type="text" id="regNombre" required placeholder="Ej. Nelva Adalid">
+                </div>
+                <div class="input-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <input type="email" id="regEmail" required placeholder="correo@example.com">
+                </div>
+                <div class="input-group">
+                    <label for="regTelf">Teléfono / Celular</label>
+                    <input type="text" id="regTelf" placeholder="Ej. 70000000">
+                </div>
+                <div class="input-group">
+                    <label for="regPassword">Contraseña (Mínimo 6 caracteres)</label>
+                    <input type="password" id="regPassword" required placeholder="••••••">
+                </div>
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 12px; margin-top: 10px;">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout / Pago QR -->
+    <div id="checkoutModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px; text-align: center; color: white;">
+            <span class="close-modal" id="btnCloseCheckoutModal">&times;</span>
+            <h3 style="color: #e6c27a; margin-bottom: 15px;">Finalizar Pedido</h3>
+            
+            <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px; color: #d0d0d0;">
+                Para completar tu pedido, escanea el código QR de pago oficial de la tienda, realiza la transferencia y sube tu comprobante de pago abajo.
+            </p>
+
+            <div style="margin-bottom: 25px;">
+                <img id="checkoutQrImg" src="" alt="Cargando QR oficial de pago..." style="max-width: 220px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.4); padding: 8px; background: white; margin-bottom: 15px;">
+                <div style="color: #e6c27a; font-weight: bold; font-size: 1.25rem;">
+                    Monto total a transferir: <span id="checkoutMonto">Bs. 0</span>
+                </div>
+            </div>
+
+            <form id="checkoutForm" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label for="comprobanteFile">Subir Captura del Comprobante (QR / Transferencia)</label>
+                    <input type="file" id="comprobanteFile" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn-gold" style="width: 100%; border-radius: 8px; padding: 14px; font-weight: bold; font-size: 0.95rem;">Enviar Comprobante y Registrar Pedido</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles del Producto -->
+    <div id="productDetailModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; padding: 0; overflow: hidden; border-radius: 20px;">
+            <span class="close-modal" id="btnCloseDetailModal" style="top: 20px; right: 25px; z-index: 10;">&times;</span>
+            <div style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+                <!-- Columna Foto -->
+                <div style="flex: 1 1 300px; max-height: 400px; overflow: hidden; background: #000;">
+                    <img id="detailProductImg" src="" alt="Prenda de vestir" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <!-- Columna Info -->
+                <div style="flex: 1 1 300px; padding: 35px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+                    <div>
+                        <span id="detailProductCat" style="font-size: 0.75rem; text-transform: uppercase; color: #a0a0a0; letter-spacing: 1.5px; font-weight: 500;">Categoría</span>
+                        <h2 id="detailProductName" style="margin: 5px 0 0 0; color: white; font-weight: 400; font-size: 1.6rem; letter-spacing: 1px;">Nombre de la Prenda</h2>
+                    </div>
+                    
+                    <p id="detailProductDesc" style="color: #c0c0c0; font-size: 0.85rem; line-height: 1.6; margin: 0;">Descripción detallada de la prenda...</p>
+                    
+                    <div style="font-size: 1.5rem; font-weight: 600; color: #e6c27a;" id="detailProductPrice">Bs. 0</div>
+
+                    <!-- Selector de Variantes (Talla y Color) -->
+                    <div style="display: flex; flex-direction: column; gap: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label for="detailVariantSelect">Seleccionar Talla / Color</label>
+                            <select id="detailVariantSelect" required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(212,175,55,0.2); font-family: 'Poppins', sans-serif;">
+                                <!-- Cargado dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Botón Agregar -->
+                    <button id="btnDetailAddCart" class="btn-gold" style="width: 100%; border-radius: 10px; padding: 14px; font-weight: bold; margin-top: auto;">
+                        <i class="fas fa-shopping-bag" style="margin-right: 8px;"></i> Agregar a la Bolsa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat en Vivo Profesional (Tawk.to) -->
+    <!-- Nota: Puedes cambiar la URL del script por el tuyo propio de Tawk.to cuando registres tu cuenta final -->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6483bfdecc26a871b021a8d0/1h2hn83ki';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
