@@ -17,24 +17,46 @@ export const subirQrOficial = async (req, res) => {
             .toBuffer();
 
         const nombreArchivo = 'qr-oficial.webp';
+        const bucketName = 'ropa';
 
         // 2. Subir con upsert: true para reemplazar el anterior
-        const { error } = await supabase.storage
-            .from('ropa')
+        let { error } = await supabase.storage
+            .from(bucketName)
             .upload(nombreArchivo, webpBuffer, {
                 contentType: 'image/webp',
                 cacheControl: '0', // Evita almacenamiento en caché para refrescar cambios
                 upsert: true
             });
 
+        // Si el bucket no se encuentra, intentamos crearlo de forma automática
+        if (error && (error.message === 'Bucket not found' || error.error === 'Bucket not found' || (error.statusCode === '404' && error.message.toLowerCase().includes('not found')))) {
+            console.log(`El bucket '${bucketName}' no existe. Intentando crearlo de forma automática...`);
+            const { error: createError } = await supabase.storage.createBucket(bucketName, { public: true });
+            
+            if (!createError) {
+                console.log(`Bucket '${bucketName}' creado con éxito. Reintentando subida...`);
+                const retry = await supabase.storage
+                    .from(bucketName)
+                    .upload(nombreArchivo, webpBuffer, {
+                        contentType: 'image/webp',
+                        cacheControl: '0',
+                        upsert: true
+                    });
+                error = retry.error;
+            } else {
+                console.error(`No se pudo crear el bucket '${bucketName}':`, createError);
+                error = new Error(`El bucket '${bucketName}' no existe en tu proyecto de Supabase. Créalo desde el panel de Supabase con acceso público.`);
+            }
+        }
+
         if (error) {
             console.error("Error al subir QR oficial a Supabase Storage:", error);
-            return res.status(500).json({ error: "Error al guardar el QR oficial en Supabase Storage." });
+            return res.status(500).json({ error: `Error al guardar el QR oficial en Supabase Storage: ${error.message || JSON.stringify(error)}` });
         }
 
         // 3. Obtener URL pública
         const { data: publicUrlData } = supabase.storage
-            .from('ropa')
+            .from(bucketName)
             .getPublicUrl(nombreArchivo);
 
         return res.json({
@@ -43,7 +65,7 @@ export const subirQrOficial = async (req, res) => {
         });
     } catch (error) {
         console.error("Excepción en subirQrOficial:", error);
-        return res.status(500).json({ error: "Error interno del servidor." });
+        return res.status(500).json({ error: `Error interno del servidor: ${error.message}` });
     }
 };
 
