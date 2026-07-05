@@ -435,12 +435,12 @@ async function cargarOrdenes() {
                                 <button onclick="cambiarEstadoOrden(${orden.id}, 'Aprobado')" class="btn-gold" style="padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; flex: 1;"><i class="fas fa-check"></i> Aprobar</button>
                                 <button onclick="cambiarEstadoOrden(${orden.id}, 'Cancelado')" style="padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; cursor: pointer; flex: 1;"><i class="fas fa-times"></i> Cancelar</button>
                             </div>
-                            <button onclick="notificarEnvioBus(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #25d366; border: none; color: white; cursor: pointer;"><i class="fab fa-whatsapp"></i> Notificar Bus</button>
+                            <button onclick="chatearDetallesPedido(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; text-align: center; gap: 4px; background: #25d366; border: none; color: white; cursor: pointer; width: 100%; white-space: normal; line-height: 1.3;"><i class="fab fa-whatsapp"></i> Dirigirse a chat con el cliente para detalles de su pedido</button>
                         </div>
                     `;
                 } else if (orden.estado === 'Aprobado') {
                     accionesHtml = `
-                        <button onclick="notificarEnvioBus(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; background: #25d366; border: none; color: white; cursor: pointer;"><i class="fab fa-whatsapp"></i> Notificar Bus</button>
+                        <button onclick="chatearDetallesPedido(${orden.id}, '${cliName.replace(/'/g, "\\'")}', '${cliTelf.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; text-align: center; gap: 4px; background: #25d366; border: none; color: white; cursor: pointer; width: 100%; white-space: normal; line-height: 1.3;"><i class="fab fa-whatsapp"></i> Dirigirse a chat con el cliente para detalles de su pedido</button>
                     `;
                 } else {
                     accionesHtml = `<span style="color: #a0a0a0;">Cerrada</span>`;
@@ -748,22 +748,16 @@ window.editarVariante = async (variantId, tallaActual, colorActual, stockActual,
     }
 };
 
-window.notificarEnvioBus = (ordenId, clienteNombre, clienteTelefono) => {
-    const empresa = prompt("Ingresa la Empresa de Transporte / Bus (ej: Trans Copacabana):");
-    if (empresa === null) return;
-    
-    const busPlaca = prompt("Ingresa los datos del Bus / Nro. / Placa / Fecha y Hora (ej: Bus 14, Placa 4500-ABC, Salida 20:00):");
-    if (busPlaca === null) return;
-
-    if (!empresa.trim() || !busPlaca.trim()) {
-        alert("Debes completar los datos de envío.");
+window.chatearDetallesPedido = (ordenId, clienteNombre, clienteTelefono) => {
+    if (!clienteTelefono) {
+        alert("El cliente no tiene registrado un número de teléfono.");
         return;
     }
 
-    const tlfDestinatario = clienteTelefono ? clienteTelefono.replace(/\D/g, '') : '';
+    const tlfDestinatario = clienteTelefono.replace(/\D/g, '');
     const tlfFinal = tlfDestinatario.startsWith('591') ? tlfDestinatario : `591${tlfDestinatario}`;
 
-    const mensajeText = `Hola ${clienteNombre || 'cliente'},\n\nTe informamos que tu pedido *#${ordenId}* de *STORE LAN* ha sido enviado desde la Terminal de Sucre.\n\n*Detalles del Envío:*\n- *Empresa de Transporte:* ${empresa}\n- *Datos del Bus:* ${busPlaca}\n\nRecuerda recogerlo en la terminal de buses de tu localidad presentando tu cédula de identidad y cancelando el costo del flete correspondiente (entre 10 y 20 Bs). ¡Muchas gracias por tu preferencia! ✨`;
+    const mensajeText = `Hola ${clienteNombre || 'cliente'},\n\nTe escribo de *STORE LAN* para coordinar los detalles de la entrega de tu pedido *#${ordenId}*. ✨`;
 
     const whatsappUrl = `https://wa.me/${tlfFinal}?text=${encodeURIComponent(mensajeText)}`;
     window.open(whatsappUrl, '_blank');
