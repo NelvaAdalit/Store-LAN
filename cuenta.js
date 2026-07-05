@@ -59,7 +59,8 @@ async function cargarPerfilCliente() {
     try {
         const response = await fetch(`${API_URL}/auth/cliente/perfil`);
         if (!response.ok) {
-            throw new Error("No se pudo cargar el perfil.");
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Estado HTTP: ${response.status}`);
         }
         
         const cliente = await response.json();
@@ -102,7 +103,8 @@ async function cargarHistorialPedidos() {
     try {
         const response = await fetch(`${API_URL}/ordenes/mis-ordenes`);
         if (!response.ok) {
-            throw new Error("Error al consultar las órdenes.");
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Estado HTTP: ${response.status}`);
         }
         
         const ordenes = await response.json();
