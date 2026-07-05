@@ -326,7 +326,7 @@ export const obtenerPerfilCliente = async (req, res) => {
 
         if (error) {
             console.error("Error al obtener perfil del cliente:", error);
-            return res.status(500).json({ error: "Error en el servidor al cargar tu perfil." });
+            return res.status(500).json({ error: `Error de Base de Datos: ${error.message}` });
         }
 
         if (!cliente) {
