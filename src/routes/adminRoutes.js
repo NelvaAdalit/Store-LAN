@@ -1,5 +1,5 @@
 import express from 'express';
-import { subirQrOficial, obtenerQrOficial, crearCategoria } from '../controllers/adminController.js';
+import { subirQrOficial, obtenerQrOficial, crearCategoria, obtenerClientesAdmin } from '../controllers/adminController.js';
 import { verificarAdmin } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/uploadMiddleware.js';
 
@@ -13,5 +13,8 @@ router.post('/qr', verificarAdmin, upload.single('qr'), subirQrOficial);
 
 // POST /api/admin/categorias - Crear nueva categoría (Solo Admin)
 router.post('/categorias', verificarAdmin, crearCategoria);
+
+// GET /api/admin/clientes - Obtener todos los clientes registrados (Solo Admin)
+router.get('/clientes', verificarAdmin, obtenerClientesAdmin);
 
 export default router;

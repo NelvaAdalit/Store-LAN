@@ -289,9 +289,46 @@ linkOrdenes.addEventListener('click', (e) => {
 
 linkClientes.addEventListener('click', (e) => {
     e.preventDefault();
-    cambiarVista(linkClientes, clientesSection, 'Mensajes de Contacto');
-    cargarContactos();
+    cambiarVista(linkClientes, clientesSection, 'Clientes y Contactos');
+    const btnTabClientesReg = document.getElementById('btnTabClientesReg');
+    if (btnTabClientesReg) btnTabClientesReg.click();
 });
+
+// --- 6.1 Pestañas de la Sección Clientes y Contactos ---
+const btnTabClientesReg = document.getElementById('btnTabClientesReg');
+const btnTabContactos = document.getElementById('btnTabContactos');
+const panelClientesReg = document.getElementById('panelClientesReg');
+const panelContactos = document.getElementById('panelContactos');
+
+if (btnTabClientesReg && btnTabContactos) {
+    btnTabClientesReg.addEventListener('click', () => {
+        btnTabClientesReg.style.background = 'rgba(230,194,122,0.05)';
+        btnTabClientesReg.style.borderColor = '#e6c27a';
+        btnTabClientesReg.style.color = '#e6c27a';
+
+        btnTabContactos.style.background = 'transparent';
+        btnTabContactos.style.borderColor = 'rgba(255,255,255,0.2)';
+        btnTabContactos.style.color = 'white';
+
+        panelClientesReg.style.display = 'block';
+        panelContactos.style.display = 'none';
+        cargarClientesRegistrados();
+    });
+
+    btnTabContactos.addEventListener('click', () => {
+        btnTabContactos.style.background = 'rgba(230,194,122,0.05)';
+        btnTabContactos.style.borderColor = '#e6c27a';
+        btnTabContactos.style.color = '#e6c27a';
+
+        btnTabClientesReg.style.background = 'transparent';
+        btnTabClientesReg.style.borderColor = 'rgba(255,255,255,0.2)';
+        btnTabClientesReg.style.color = 'white';
+
+        panelContactos.style.display = 'block';
+        panelClientesReg.style.display = 'none';
+        cargarContactos();
+    });
+}
 
 linkQrConfig.addEventListener('click', (e) => {
     e.preventDefault();
@@ -343,6 +380,22 @@ async function cargarOrdenes() {
                         </div>
                     `;
                 }
+
+                // Listar prendas compradas
+                let prendasHtml = '';
+                if (orden.detalle_orden && orden.detalle_orden.length > 0) {
+                    prendasHtml += `
+                        <div style="margin-top: 8px; font-size: 0.75rem; color: #d0d0d0; text-align: left; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); max-width: 250px;">
+                            <strong style="color: #e6c27a; display: block; margin-bottom: 4px;"><i class="fas fa-tshirt"></i> Prendas:</strong>
+                    `;
+                    orden.detalle_orden.forEach(det => {
+                        const pName = det.variantes?.productos?.nombre || 'Prenda';
+                        const pSize = det.variantes?.talle || 'U';
+                        prendasHtml += `<span style="display: block; margin-bottom: 2px;">• ${det.cantidad}x ${pName} (${pSize})</span>`;
+                    });
+                    prendasHtml += `</div>`;
+                }
+                clienteInfo += prendasHtml;
 
                 // Mostrar comprobante
                 let comprobanteHtml = '';
@@ -734,3 +787,134 @@ window.recordarPagoWhatsApp = (ordenId, clienteNombre, clienteTelefono, total) =
 btnCloseVariantsModal.addEventListener('click', () => {
     variantsModal.style.display = 'none';
 });
+
+// --- 9. Listar Clientes Registrados ---
+async function cargarClientesRegistrados() {
+    const tbody = document.querySelector('#clientesTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #a0a0a0;">Cargando clientes...</td></tr>`;
+
+    try {
+        const response = await fetch(`${API_URL}/admin/clientes`);
+        const clientes = await response.json();
+
+        if (response.ok && clientes.length > 0) {
+            tbody.innerHTML = '';
+            clientes.forEach(c => {
+                const fechaReg = new Date(c.creado_en).toLocaleDateString('es-ES');
+                const cleanPhone = c.telefono ? c.telefono.replace(/\D/g, '') : '';
+                const finalPhone = cleanPhone.startsWith('591') ? cleanPhone : `591${cleanPhone}`;
+                const telfHtml = c.telefono 
+                    ? `${c.telefono} <a href="https://wa.me/${finalPhone}" target="_blank" title="Chatear por WhatsApp" style="color: #25d366; text-decoration: none; margin-left: 5px; font-size: 0.85rem;"><i class="fab fa-whatsapp"></i> Chat</a>`
+                    : '<span style="color: #a0a0a0;">Sin teléfono</span>';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${c.id}</td>
+                        <td style="font-weight: 500; color: white;">${c.nombre}</td>
+                        <td>${c.email}</td>
+                        <td>${telfHtml}</td>
+                        <td style="text-align: center;">${c.totalOrdenes}</td>
+                        <td style="color: #e6c27a; font-weight: bold;">Bs. ${c.totalGastado}</td>
+                        <td>${fechaReg}</td>
+                        <td>
+                            <button onclick="abrirHistorialPedidosCliente(${c.id}, '${c.nombre.replace(/'/g, "\\'")}')" class="btn-gold" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-history"></i> Historial
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #a0a0a0;">No hay clientes registrados aún.</td></tr>`;
+        }
+    } catch (error) {
+        console.error("Error al cargar clientes registrados:", error);
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff4d4d;">Error de conexión con el servidor.</td></tr>`;
+    }
+}
+
+// --- 10. Modal Historial de Pedidos del Cliente ---
+const historyModal = document.getElementById('historyModal');
+const btnCloseHistoryModal = document.getElementById('btnCloseHistoryModal');
+const historyListContainer = document.getElementById('historyListContainer');
+
+if (btnCloseHistoryModal) {
+    btnCloseHistoryModal.addEventListener('click', () => {
+        historyModal.style.display = 'none';
+    });
+}
+
+window.abrirHistorialPedidosCliente = async (clienteId, clienteNombre) => {
+    document.getElementById('historyModalTitle').innerText = `Historial de Pedidos: ${clienteNombre}`;
+    historyListContainer.innerHTML = `
+        <div style="text-align: center; padding: 20px 0; color: #a0a0a0;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: #e6c27a; margin-bottom: 10px;"></i>
+            <p style="font-size: 0.85rem;">Cargando pedidos del cliente...</p>
+        </div>
+    `;
+    historyModal.style.display = 'flex';
+
+    try {
+        const response = await fetch(`${API_URL}/ordenes`);
+        const result = await response.json();
+        const ordenes = Array.isArray(result) ? result : (result.data || []);
+
+        // Filtrar órdenes de este cliente específico
+        const ordenesCliente = ordenes.filter(o => o.id_cliente === clienteId);
+
+        if (response.ok && ordenesCliente.length > 0) {
+            historyListContainer.innerHTML = '';
+            
+            ordenesCliente.forEach(orden => {
+                const fecha = new Date(orden.creado_en).toLocaleString('es-ES');
+                
+                // Color y texto del estado
+                let estadoColor = '#e6c27a';
+                if (orden.estado === 'Aprobado') estadoColor = '#25d366';
+                if (orden.estado === 'Cancelado') estadoColor = '#ff4d4d';
+
+                // Compilar prendas
+                let prendasText = '';
+                if (orden.detalle_orden && orden.detalle_orden.length > 0) {
+                    orden.detalle_orden.forEach(det => {
+                        const pName = det.variantes?.productos?.nombre || 'Prenda';
+                        const pSize = det.variantes?.talle || 'U';
+                        prendasText += `<div style="font-size: 0.85rem; color: white; display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding: 4px 0;">
+                            <span>• ${det.cantidad}x ${pName} (Talla: ${pSize})</span>
+                            <span style="color: #e6c27a; font-weight: 500;">Bs. ${det.precio_unitario * det.cantidad}</span>
+                        </div>`;
+                    });
+                } else {
+                    prendasText = `<div style="color: #a0a0a0; font-size: 0.8rem;">Detalle de prendas no disponible.</div>`;
+                }
+
+                historyListContainer.innerHTML += `
+                    <div class="glass-panel" style="padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                            <div>
+                                <strong style="color: white; font-size: 0.95rem;">Pedido #${orden.id}</strong>
+                                <span style="font-size: 0.75rem; color: #a0a0a0; margin-left: 10px;">${fecha}</span>
+                            </div>
+                            <span style="color: ${estadoColor}; font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">${orden.estado}</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            ${prendasText}
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                            <span style="color: #a0a0a0;">Monto Total:</span>
+                            <span style="color: #e6c27a; font-weight: 700;">Bs. ${orden.total}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            historyListContainer.innerHTML = `<p style="color: #a0a0a0; text-align: center; padding: 20px;">Este cliente no tiene pedidos registrados.</p>`;
+        }
+    } catch (error) {
+        console.error("Error al cargar historial de pedidos:", error);
+        historyListContainer.innerHTML = `<p style="color: #ff4d4d; text-align: center; padding: 20px;">Error al obtener el historial de compras.</p>`;
+    }
+};

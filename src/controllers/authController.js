@@ -308,3 +308,32 @@ export const logout = async (req, res) => {
     });
     return res.json({ message: "Sesión cerrada correctamente" });
 };
+
+/**
+ * Obtiene la información del perfil del cliente autenticado.
+ */
+export const obtenerPerfilCliente = async (req, res) => {
+    try {
+        const id_cliente = req.cliente.id;
+
+        const { data: cliente, error } = await supabase
+            .from('clientes')
+            .select('id, nombre, email, telefono, creado_en')
+            .eq('id', id_cliente)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error al obtener perfil del cliente:", error);
+            return res.status(500).json({ error: "Error en el servidor al cargar tu perfil." });
+        }
+
+        if (!cliente) {
+            return res.status(404).json({ error: "Cliente no encontrado." });
+        }
+
+        return res.json(cliente);
+    } catch (err) {
+        console.error("Excepción en obtenerPerfilCliente:", err);
+        return res.status(500).json({ error: "Error interno del servidor" });
+    }
+};

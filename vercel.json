@@ -25,6 +25,14 @@
       "use": "@vercel/static"
     },
     {
+      "src": "cuenta.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "cuenta.js",
+      "use": "@vercel/static"
+    },
+    {
       "src": "app.js",
       "use": "@vercel/static"
     },

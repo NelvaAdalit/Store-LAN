@@ -166,7 +166,7 @@ export const obtenerOrdenes = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('ordenes')
-            .select('*, clientes(nombre, email, telefono)')
+            .select('*, clientes(nombre, email, telefono), detalle_orden(*, variantes(*, productos(*)))')
             .order('creado_en', { ascending: false });
 
         if (error) {
@@ -329,7 +329,7 @@ export const obtenerMisOrdenes = async (req, res) => {
 
         const { data, error } = await supabase
             .from('ordenes')
-            .select('*')
+            .select('*, detalle_orden(*, variantes(*, productos(*)))')
             .eq('id_cliente', id_cliente)
             .order('creado_en', { ascending: false });
 

@@ -459,21 +459,10 @@ if (nombreGuardado && clientNameNav) {
 
 // Evento botón Mi Cuenta / Iniciar Sesión
 if (btnOpenAuth) {
-    btnOpenAuth.addEventListener('click', async () => {
+    btnOpenAuth.addEventListener('click', () => {
         const sesionActiva = localStorage.getItem('sesionClienteActiva');
         if (sesionActiva) {
-            if (confirm("¿Deseas cerrar tu sesión de cliente?")) {
-                try {
-                    await fetch(`${API_URL}/auth/logout`, { method: 'POST' });
-                } catch (e) {
-                    console.error("Error cerrando sesión:", e);
-                }
-                localStorage.removeItem('tokenCliente');
-                localStorage.removeItem('nombreCliente');
-                localStorage.removeItem('sesionClienteActiva');
-                if (clientNameNav) clientNameNav.innerText = "Iniciar Sesión";
-                window.location.reload();
-            }
+            window.location.href = 'cuenta.html';
         } else {
             authModal.style.display = 'flex';
         }
@@ -541,6 +530,8 @@ if (clientLoginForm) {
                 if (document.getElementById('carritoMainContainer')) {
                     renderizarPaginaCarrito();
                     irACheckout();
+                } else {
+                    window.location.href = 'cuenta.html';
                 }
             } else {
                 alert(data.error || "Error al iniciar sesión.");

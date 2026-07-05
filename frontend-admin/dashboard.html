@@ -95,11 +95,39 @@
 
         <!-- Sección de Clientes / Contactos -->
         <section id="clientesSection" class="content-area" style="display: none;">
-            <div class="table-header">
-                <h3>Mensajes de Contacto</h3>
+            <div class="table-header" style="flex-direction: column; align-items: flex-start; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 5px;">Clientes y Contactos</h3>
+                <div style="display: flex; gap: 15px; width: 100%;">
+                    <button id="btnTabClientesReg" class="btn-outline" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; border: 1px solid #e6c27a; color: #e6c27a; font-weight: 600; cursor: pointer; background: rgba(230,194,122,0.05);">Clientes Registrados</button>
+                    <button id="btnTabContactos" class="btn-outline" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; background: transparent;">Mensajes de Contacto</button>
+                </div>
             </div>
             
-            <div class="table-container glass-panel">
+            <!-- Panel Clientes Registrados -->
+            <div id="panelClientesReg" class="table-container glass-panel">
+                <table id="clientesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Pedidos</th>
+                            <th>Total Gastado</th>
+                            <th>Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: #a0a0a0;">Cargando clientes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Panel Mensajes de Contacto -->
+            <div id="panelContactos" class="table-container glass-panel" style="display: none;">
                 <table id="contactosTable">
                     <thead>
                         <tr>
@@ -228,6 +256,18 @@
                 </div>
                 <button type="submit" class="btn-gold" style="padding: 12px 20px;"><i class="fas fa-plus"></i> Agregar</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Historial de Pedidos del Cliente -->
+    <div id="historyModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
+            <span class="close-modal" id="btnCloseHistoryModal">&times;</span>
+            <h3 id="historyModalTitle" style="color: #e6c27a; margin-bottom: 20px;">Historial de Pedidos del Cliente</h3>
+            
+            <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+                <p style="color: #a0a0a0; text-align: center;">Cargando historial...</p>
+            </div>
         </div>
     </div>
 

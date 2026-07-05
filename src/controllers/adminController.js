@@ -117,3 +117,46 @@ export const crearCategoria = async (req, res) => {
         return res.status(500).json({ error: "Error interno del servidor." });
     }
 };
+
+/**
+ * Obtiene la lista completa de clientes registrados, calculando compras y estadísticas (Solo Admin).
+ */
+export const obtenerClientesAdmin = async (req, res) => {
+    try {
+        // Obtenemos clientes junto con sus ordenes
+        const { data: clientes, error } = await supabase
+            .from('clientes')
+            .select('id, nombre, email, telefono, creado_en, ordenes(total, estado)')
+            .order('creado_en', { ascending: false });
+
+        if (error) {
+            console.error("Error al obtener clientes desde adminController:", error);
+            return res.status(500).json({ error: "Error al cargar la lista de clientes registrados." });
+        }
+
+        // Mapear clientes para compilar sus estadísticas
+        const clientesConStats = clientes.map(c => {
+            const totalOrdenes = c.ordenes ? c.ordenes.length : 0;
+            const totalGastado = c.ordenes
+                ? c.ordenes
+                    .filter(o => o.estado === 'Aprobado')
+                    .reduce((sum, o) => sum + Number(o.total || 0), 0)
+                : 0;
+
+            return {
+                id: c.id,
+                nombre: c.nombre,
+                email: c.email,
+                telefono: c.telefono,
+                creado_en: c.creado_en,
+                totalOrdenes,
+                totalGastado
+            };
+        });
+
+        return res.json(clientesConStats);
+    } catch (error) {
+        console.error("Excepción en obtenerClientesAdmin:", error);
+        return res.status(500).json({ error: "Error interno del servidor." });
+    }
+};
