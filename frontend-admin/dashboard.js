@@ -345,6 +345,7 @@ async function cargarOrdenes() {
         const response = await fetch(`${API_URL}/ordenes`);
         const result = await response.json();
         const ordenes = Array.isArray(result) ? result : (result.data || []);
+        window.todasLasOrdenes = ordenes;
 
         if (response.ok && ordenes.length > 0) {
             tbody.innerHTML = '';
@@ -757,7 +758,23 @@ window.chatearDetallesPedido = (ordenId, clienteNombre, clienteTelefono) => {
     const tlfDestinatario = clienteTelefono.replace(/\D/g, '');
     const tlfFinal = tlfDestinatario.startsWith('591') ? tlfDestinatario : `591${tlfDestinatario}`;
 
-    const mensajeText = `Hola ${clienteNombre || 'cliente'},\n\nTe escribo de *STORE LAN* para coordinar los detalles de la entrega de tu pedido *#${ordenId}*. ✨`;
+    // Buscar la orden en el cache global para listar sus prendas y fotos
+    let prendasText = '';
+    const orden = window.todasLasOrdenes ? window.todasLasOrdenes.find(o => o.id === ordenId) : null;
+    
+    if (orden && orden.detalle_orden && orden.detalle_orden.length > 0) {
+        prendasText = '\n\n*Prendas de tu pedido:*\n' + orden.detalle_orden.map(det => {
+            const pName = det.variantes?.productos?.nombre || 'Prenda';
+            const pSize = det.variantes?.talle || 'U';
+            const pImg = (det.variantes?.productos?.imagenes && det.variantes.productos.imagenes.length > 0)
+                ? (det.variantes.productos.imagenes[0].url || det.variantes.productos.imagenes[0])
+                : '';
+            const imgLink = pImg ? `\n   ↳ Foto: ${pImg}` : '';
+            return `- ${det.cantidad}x ${pName} (Talla: ${pSize})${imgLink}`;
+        }).join('\n');
+    }
+
+    const mensajeText = `Hola ${clienteNombre || 'cliente'},\n\nTe escribo de *STORE LAN* para coordinar los detalles de la entrega de tu pedido *#${ordenId}*. ✨${prendasText}\n\nQuedo atenta a tus comentarios para preparar tu paquete. ¡Muchas gracias! 😊`;
 
     const whatsappUrl = `https://wa.me/${tlfFinal}?text=${encodeURIComponent(mensajeText)}`;
     window.open(whatsappUrl, '_blank');
