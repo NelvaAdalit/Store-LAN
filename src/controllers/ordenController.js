@@ -125,17 +125,18 @@ export const subirComprobantePago = async (req, res) => {
 
         const comprobanteUrl = urlData.publicUrl;
 
-        // 5. Actualizar la orden en la BD con la URL del comprobante
+        // 5. Actualizar la orden en la BD con la URL del comprobante (Evita IDOR: verifica id_cliente)
         const { data: ordenActualizada, error: dbError } = await supabase
             .from('ordenes')
             .update({ comprobante_url: comprobanteUrl })
             .eq('id', parseInt(id))
+            .eq('id_cliente', req.cliente.id)
             .select('*')
             .single();
 
-        if (dbError) {
+        if (dbError || !ordenActualizada) {
             console.error("Error al asociar comprobante en la orden:", dbError);
-            return res.status(500).json({ error: "Error al registrar el comprobante en la base de datos." });
+            return res.status(403).json({ error: "No tienes autorización para actualizar esta orden o la orden no existe." });
         }
 
         // 6. Opcional: Registrar en tabla 'pagos' si existe
@@ -351,17 +352,24 @@ export const obtenerMisOrdenes = async (req, res) => {
 export const marcarComprobanteWhatsApp = async (req, res) => {
     try {
         const { id } = req.params;
-        const { error } = await supabase
+        const { data: ordenActualizada, error } = await supabase
             .from('ordenes')
             .update({ comprobante_url: 'Enviado a WhatsApp' })
-            .eq('id', parseInt(id));
+            .eq('id', parseInt(id))
+            .eq('id_cliente', req.cliente.id) // Evita IDOR
+            .select('*')
+            .maybeSingle();
 
         if (error) {
             console.error("Error al marcar comprobante por WhatsApp:", error);
             return res.status(500).json({ error: "Error al actualizar el estado del comprobante." });
         }
 
-        return res.json({ message: "Orden marcada como enviada por WhatsApp con éxito." });
+        if (!ordenActualizada) {
+            return res.status(403).json({ error: "No tienes autorización para actualizar esta orden o la orden no existe." });
+        }
+
+        return res.json({ message: "Orden marcada como enviada por WhatsApp con éxito.", orden: ordenActualizada });
     } catch (error) {
         console.error("Excepción en marcarComprobanteWhatsApp:", error);
         return res.status(500).json({ error: "Error interno del servidor." });

@@ -663,7 +663,7 @@ function renderizarPaginaCarrito() {
         mainContainer.innerHTML = `
             <div style="max-width: 1200px; margin: 40px auto; padding: 0 30px; box-sizing: border-box;">
                 <div class="empty-cart-container glass-card" style="text-align: center; padding: 50px 20px; color: #a0a0a0; max-width: 600px; margin: 0 auto 50px auto;">
-                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h3>
+                    <h1 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h1>
                     <div style="font-size: 4rem; color: #e6c27a; margin-bottom: 25px; opacity: 0.8;">
                         <i class="far fa-sad-tear"></i>
                     </div>
@@ -719,7 +719,7 @@ function renderizarPaginaCarrito() {
             <div class="checkout-layout">
                 <!-- Columna Izquierda: Tabla -->
                 <div class="glass-card" style="padding: 30px; width: 100%; box-sizing: border-box;">
-                    <h3 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h3>
+                    <h1 style="color: #e6c27a; font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 500; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;">Carrito de compras – STORE LAN</h1>
                     
                     <div style="overflow-x: auto; width: 100%;">
                         <table class="cart-table">
