@@ -4,11 +4,25 @@ const CONFIG = {
         : 'https://store-lan.onrender.com/api' // URL de producción en Render
 };
 
-// Interceptor global de peticiones (JWT Lifecycle para Administrador con Cookies)
+// Interceptor global de peticiones (JWT Lifecycle para Administrador con Cookies y Cabecera de Autorización)
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
     const options = init || {};
     options.credentials = 'include'; // Asegura el envío de cookies HttpOnly en peticiones CORS
+
+    const token = localStorage.getItem('tokenStoreLan');
+    if (token) {
+        if (options.headers instanceof Headers) {
+            if (!options.headers.has('Authorization')) {
+                options.headers.append('Authorization', `Bearer ${token}`);
+            }
+        } else {
+            options.headers = options.headers || {};
+            if (!options.headers['Authorization'] && !options.headers['authorization']) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
+    }
 
     try {
         const response = await originalFetch(input, options);

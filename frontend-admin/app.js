@@ -21,8 +21,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            // ¡ÉXITO! Guardamos el flag de sesión activa
+            // ¡ÉXITO! Guardamos el flag de sesión activa y el token
             localStorage.setItem('sesionAdminActiva', 'true');
+            localStorage.setItem('tokenStoreLan', data.token);
             
             mensaje.style.color = '#00ff88'; // Verde brillante
             mensaje.innerText = '¡Acceso concedido! Entrando...';

@@ -515,12 +515,14 @@ if (clientLoginForm) {
             if (response.ok) {
                 if (data.rol === 'admin' || data.rol === 'superadmin') {
                     localStorage.setItem('sesionAdminActiva', 'true');
+                    localStorage.setItem('tokenStoreLan', data.token);
                     alert("¡Acceso concedido como Administrador! Redireccionando al panel de control...");
                     window.location.href = 'frontend-admin/dashboard.html';
                     return;
                 }
 
                 localStorage.setItem('sesionClienteActiva', 'true');
+                localStorage.setItem('tokenCliente', data.token);
                 localStorage.setItem('nombreCliente', data.cliente.nombre);
                 if (clientNameNav) clientNameNav.innerText = data.cliente.nombre.split(' ')[0];
                 authModal.style.display = 'none';

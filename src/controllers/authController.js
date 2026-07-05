@@ -43,7 +43,7 @@ export const login = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000 // 24 horas
         });
 
-        return res.json({ message: "Login exitoso", rol: usuario.rol });
+        return res.json({ message: "Login exitoso", rol: usuario.rol, token });
     } catch (err) {
         console.error("Excepción en el proceso de login:", err);
         return res.status(500).json({ error: "Error interno del servidor" });
@@ -235,6 +235,7 @@ export const loginCliente = async (req, res) => {
             return res.json({
                 message: "Inicio de sesión exitoso",
                 rol: 'cliente',
+                token,
                 cliente: {
                     id: cliente.id,
                     nombre: cliente.nombre,
@@ -279,6 +280,7 @@ export const loginCliente = async (req, res) => {
             return res.json({
                 message: "Inicio de sesión exitoso como Administrador",
                 rol: usuario.rol || 'admin',
+                token,
                 cliente: {
                     id: usuario.id,
                     nombre: "Administrador",
