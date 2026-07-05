@@ -93,6 +93,7 @@ async function cargarProductos() {
 
         // Obtenemos los productos de forma robusta sea un array directo o un objeto { data: [...] }
         const productos = Array.isArray(result) ? result : (result.data || []);
+        window.todosLosProductos = productos;
 
         if (response.ok && productos.length > 0) {
             tbody.innerHTML = ''; // Limpiamos
@@ -115,10 +116,10 @@ async function cargarProductos() {
                         <td>${categoriaNombre}</td>
                         <td style="color: #e6c27a; font-weight: bold;">${precioTexto}</td>
                         <td>
-                            <button onclick="abrirModalVariantes(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}')" title="Gestionar Stock" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
+                            <button onclick="abrirModalVariantes(${producto.id})" title="Gestionar Stock" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
                                 <i class="fas fa-cubes"></i>
                             </button>
-                            <button onclick="prepararEdicion(${producto.id}, '${producto.nombre.replace(/'/g, "\\'")}', '${(producto.descripcion || '').replace(/'/g, "\\'")}', ${producto.precio}, ${producto.id_categoria}, ${producto.precio_oferta || 'null'})" title="Editar" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
+                            <button onclick="prepararEdicion(${producto.id})" title="Editar" style="background:transparent; border:none; color:#e6c27a; cursor:pointer; margin-right: 10px; font-size: 1.1rem;">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button onclick="eliminarProducto(${producto.id})" title="Eliminar" style="background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-size: 1.1rem;">
@@ -161,14 +162,17 @@ window.addEventListener('click', (e) => {
 });
 
 // Preparar Edición
-window.prepararEdicion = (id, nombre, descripcion, precio, id_categoria, precio_oferta) => {
+window.prepararEdicion = (id) => {
+    const producto = window.todosLosProductos ? window.todosLosProductos.find(p => p.id === id) : null;
+    if (!producto) return;
+
     modalTitle.innerText = "Editar Producto";
-    productIdInput.value = id;
-    prodNombreInput.value = nombre;
-    prodDescripcionInput.value = (descripcion === 'undefined' || !descripcion) ? '' : descripcion;
-    prodPrecioInput.value = precio;
-    prodPrecioOfertaInput.value = precio_oferta ? precio_oferta : '';
-    prodCategoriaSelect.value = id_categoria;
+    productIdInput.value = producto.id;
+    prodNombreInput.value = producto.nombre || '';
+    prodDescripcionInput.value = producto.descripcion || '';
+    prodPrecioInput.value = producto.precio || '';
+    prodPrecioOfertaInput.value = producto.precio_oferta || '';
+    prodCategoriaSelect.value = producto.id_categoria || '';
     prodImagenInput.required = false; // Opcional en edición
     productModal.style.display = "flex";
 };
@@ -595,7 +599,10 @@ const variantForm = document.getElementById('variantForm');
 const varProductIdInput = document.getElementById('varProductId');
 const variantsModalTitle = document.getElementById('variantsModalTitle');
 
-window.abrirModalVariantes = async (productId, productName) => {
+window.abrirModalVariantes = async (productId) => {
+    const producto = window.todosLosProductos ? window.todosLosProductos.find(p => p.id === productId) : null;
+    const productName = producto ? producto.nombre : 'Prenda';
+    
     variantsModalTitle.innerText = `Variantes y Stock: ${productName}`;
     varProductIdInput.value = productId;
     
