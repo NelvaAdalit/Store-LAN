@@ -90,8 +90,8 @@ async function cargarPerfilCliente() {
         
     } catch (error) {
         console.error("Error al cargar perfil de cliente:", error);
-        document.getElementById('profileName').innerText = "Error de Conexión";
-        document.getElementById('profileEmail').innerText = `Detalle: ${error.message}`;
+        document.getElementById('profileName').innerText = "Usuario Store LAN";
+        document.getElementById('profileEmail').innerText = "Sesión activa (perfil no cargado)";
     }
 }
 
