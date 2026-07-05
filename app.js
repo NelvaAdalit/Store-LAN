@@ -737,7 +737,7 @@ function renderizarPaginaCarrito() {
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 10px; font-size: 0.85rem; color: #a0a0a0;">
-                        <span>Moda Circular</span>
+                        <span>Prendas Exclusivas</span>
                     </div>
                 </div>
 
