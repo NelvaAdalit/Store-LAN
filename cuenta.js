@@ -8,8 +8,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // 1. Verificar si hay sesión activa de cliente
 function verificarSesion() {
     const sesionActiva = localStorage.getItem('sesionClienteActiva');
+    const token = localStorage.getItem('tokenCliente');
+    
     if (!sesionActiva) {
         alert("Acceso denegado. Por favor, inicia sesión.");
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    // Si la sesión está activa pero falta el token (sesión vieja), forzamos re-login para guardarlo
+    if (sesionActiva && !token) {
+        alert("Por actualización de seguridad del sitio, por favor inicia sesión de nuevo.");
+        localStorage.removeItem('tokenCliente');
+        localStorage.removeItem('nombreCliente');
+        localStorage.removeItem('sesionClienteActiva');
         window.location.href = 'index.html';
     }
 }
