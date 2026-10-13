@@ -131,14 +131,17 @@ export const register = async (req, res) => {
 export const registrarCliente = async (req, res) => {
     try {
         const { nombre, email, password, telefono } = req.body;
+        const nombreNormalizado = typeof nombre === 'string' ? nombre.trim() : '';
+        const emailNormalizado = typeof email === 'string' ? email.trim().toLowerCase() : '';
+        const telefonoNormalizado = typeof telefono === 'string' ? telefono.trim() : '';
 
-        if (!nombre || !email || !password) {
+        if (!nombreNormalizado || !emailNormalizado || !password) {
             return res.status(400).json({ error: "Nombre, correo y contraseña son requeridos" });
         }
 
         // Validar correo
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (!emailRegex.test(emailNormalizado)) {
             return res.status(400).json({ error: "El formato del correo electrónico no es válido" });
         }
 
@@ -147,11 +150,16 @@ export const registrarCliente = async (req, res) => {
         }
 
         // Verificar duplicados en clientes
-        const { data: clienteExistente } = await supabase
+        const { data: clienteExistente, error: errorBusqueda } = await supabase
             .from('clientes')
             .select('id')
-            .eq('email', email)
+            .eq('email', emailNormalizado)
             .maybeSingle();
+
+        if (errorBusqueda) {
+            console.error("Error al verificar el correo del cliente en Supabase:", errorBusqueda);
+            return res.status(500).json({ error: "No se pudo verificar el correo en el servidor" });
+        }
 
         if (clienteExistente) {
             return res.status(400).json({ error: "El correo electrónico ya está registrado en una cuenta de cliente" });
@@ -162,16 +170,14 @@ export const registrarCliente = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, salt);
 
         // Guardar cliente
-        const { data: nuevoCliente, error: dbError } = await supabase
+        const { error: dbError } = await supabase
             .from('clientes')
             .insert({
-                nombre,
-                email,
+                nombre: nombreNormalizado,
+                email: emailNormalizado,
                 password: passwordHash,
-                telefono: telefono || null
-            })
-            .select('id, nombre, email')
-            .single();
+                telefono: telefonoNormalizado || null
+            });
 
         if (dbError) {
             console.error("Error al registrar cliente en Supabase:", dbError);
@@ -180,7 +186,10 @@ export const registrarCliente = async (req, res) => {
 
         return res.status(201).json({
             message: "Registro completado exitosamente",
-            cliente: nuevoCliente
+            cliente: {
+                nombre: nombreNormalizado,
+                email: emailNormalizado
+            }
         });
     } catch (err) {
         console.error("Excepción en registrarCliente:", err);
