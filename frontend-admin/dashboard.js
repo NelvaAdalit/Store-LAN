@@ -816,7 +816,11 @@ async function cargarClientesRegistrados() {
         const response = await fetch(`${API_URL}/admin/clientes`);
         const clientes = await response.json();
 
-        if (response.ok && clientes.length > 0) {
+        if (!response.ok) {
+            throw new Error(clientes.error || 'No se pudo cargar la lista de clientes.');
+        }
+
+        if (clientes.length > 0) {
             tbody.innerHTML = '';
             clientes.forEach(c => {
                 const fechaReg = new Date(c.creado_en).toLocaleDateString('es-ES');

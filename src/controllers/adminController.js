@@ -126,8 +126,8 @@ export const obtenerClientesAdmin = async (req, res) => {
         // Obtenemos clientes junto con sus ordenes
         const { data: clientes, error } = await supabase
             .from('clientes')
-            .select('id, nombre, email, telefono, creado_en, ordenes(total, estado)')
-            .order('creado_en', { ascending: false });
+            .select('id, nombre, email, telefono, created_at, ordenes(total, estado)')
+            .order('created_at', { ascending: false });
 
         if (error) {
             console.error("Error al obtener clientes desde adminController:", error);
@@ -148,7 +148,7 @@ export const obtenerClientesAdmin = async (req, res) => {
                 nombre: c.nombre,
                 email: c.email,
                 telefono: c.telefono,
-                creado_en: c.creado_en,
+                creado_en: c.created_at,
                 totalOrdenes,
                 totalGastado
             };
