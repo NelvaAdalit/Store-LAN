@@ -1,7 +1,10 @@
 // 1. Verificación de Seguridad Inmediata
 const sesionActiva = localStorage.getItem('sesionAdminActiva');
+const tokenAdmin = localStorage.getItem('tokenStoreLan');
 
-if (!sesionActiva) {
+if (!sesionActiva || !tokenAdmin) {
+    localStorage.removeItem('sesionAdminActiva');
+    localStorage.removeItem('tokenStoreLan');
     // Si no hay sesión activa, expulsamos al usuario al login
     window.location.href = 'index.html';
 }
@@ -816,6 +819,13 @@ async function cargarClientesRegistrados() {
         const response = await fetch(`${API_URL}/admin/clientes`);
         const clientes = await response.json();
 
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('tokenStoreLan');
+            localStorage.removeItem('sesionAdminActiva');
+            window.location.href = 'index.html';
+            return;
+        }
+
         if (!response.ok) {
             throw new Error(clientes.error || 'No se pudo cargar la lista de clientes.');
         }
@@ -852,7 +862,7 @@ async function cargarClientesRegistrados() {
         }
     } catch (error) {
         console.error("Error al cargar clientes registrados:", error);
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff4d4d;">Error de conexión con el servidor.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ff4d4d;">${error.message || 'Error de conexión con el servidor.'}</td></tr>`;
     }
 }
 
