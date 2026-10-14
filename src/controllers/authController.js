@@ -2,6 +2,9 @@ import { supabase } from '../config/supabaseClient.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const TOKEN_EXPIRATION = '5m';
+const TOKEN_MAX_AGE = 5 * 60 * 1000;
+
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -33,14 +36,14 @@ export const login = async (req, res) => {
         }
 
         // 3. Crear el Token JWT
-        const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: TOKEN_EXPIRATION });
 
         // Enviar cookie segura
         res.cookie('tokenStoreLan', token, {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
-            maxAge: 24 * 60 * 60 * 1000 // 24 horas
+            maxAge: TOKEN_MAX_AGE
         });
 
         return res.json({ message: "Login exitoso", rol: usuario.rol, token });
@@ -231,14 +234,14 @@ export const loginCliente = async (req, res) => {
             const token = jwt.sign(
                 { id: cliente.id, nombre: cliente.nombre, rol: 'cliente' },
                 process.env.JWT_SECRET,
-                { expiresIn: '7d' }
+                { expiresIn: TOKEN_EXPIRATION }
             );
 
             res.cookie('tokenCliente', token, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+                maxAge: TOKEN_MAX_AGE
             });
 
             return res.json({
@@ -276,14 +279,14 @@ export const loginCliente = async (req, res) => {
             const token = jwt.sign(
                 { id: usuario.id, email: usuario.email, rol: usuario.rol || 'admin' },
                 process.env.JWT_SECRET,
-                { expiresIn: '7d' }
+                { expiresIn: TOKEN_EXPIRATION }
             );
 
             res.cookie('tokenStoreLan', token, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+                maxAge: TOKEN_MAX_AGE
             });
 
             return res.json({
