@@ -2,7 +2,7 @@ import { supabase } from '../config/supabaseClient.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const TOKEN_EXPIRATION = '5m';
+const TOKEN_EXPIRATION = 300;
 const TOKEN_MAX_AGE = 5 * 60 * 1000;
 
 export const login = async (req, res) => {
